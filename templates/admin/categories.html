@@ -1,0 +1,117 @@
+{% extends "base_admin.html" %}
+{% block title %}الأقسام{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">إدارة الأقسام</h1>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <!-- Add Category -->
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="text-lg font-bold text-gray-700 mb-4">إضافة قسم جديد</h2>
+    <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">الاسم بالعربي *</label>
+        <input type="text" name="name_ar" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+               placeholder="مثال: المقبلات">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">الاسم بالإنجليزي *</label>
+        <input type="text" name="name_en" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+               placeholder="e.g. Starters">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">ترتيب العرض</label>
+        <input type="number" name="sort_order" value="0" min="0"
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <button type="submit"
+              class="w-full py-2.5 rounded-xl text-white font-bold"
+              style="background: {{ restaurant.primary_color }}">
+        إضافة القسم
+      </button>
+    </form>
+  </div>
+
+  <!-- Categories List -->
+  <div class="bg-white rounded-2xl shadow-sm p-6">
+    <h2 class="text-lg font-bold text-gray-700 mb-4">الأقسام الحالية ({{ categories | length }})</h2>
+    {% if categories %}
+      <div class="space-y-3">
+        {% for cat in categories %}
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-semibold text-gray-800">{{ cat.name_ar }}</span>
+            <span class="text-gray-500 text-sm">{{ cat.name_en }}</span>
+          </div>
+          <div class="flex gap-2">
+            <!-- Edit button triggers modal -->
+            <button onclick="openEditModal({{ cat.id }}, '{{ cat.name_ar }}', '{{ cat.name_en }}', {{ cat.sort_order }})"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-medium hover:bg-blue-100">
+              تعديل
+            </button>
+            <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}"
+                  onsubmit="return confirm('هل تريد حذف هذا القسم وجميع منتجاته؟')">
+              <button type="submit"
+                      class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100">
+                حذف
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-400 text-center py-8">لا توجد أقسام بعد</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+    <h3 class="text-lg font-bold mb-4">تعديل القسم</h3>
+    <form id="editForm" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">الاسم بالعربي</label>
+        <input type="text" id="edit_name_ar" name="name_ar" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">الاسم بالإنجليزي</label>
+        <input type="text" id="edit_name_en" name="name_en" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">ترتيب العرض</label>
+        <input type="number" id="edit_sort_order" name="sort_order" min="0"
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="flex-1 py-2.5 rounded-xl text-white font-bold"
+                style="background: {{ restaurant.primary_color }}">حفظ</button>
+        <button type="button" onclick="closeEditModal()"
+                class="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openEditModal(id, nameAr, nameEn, sortOrder) {
+  document.getElementById('edit_name_ar').value = nameAr;
+  document.getElementById('edit_name_en').value = nameEn;
+  document.getElementById('edit_sort_order').value = sortOrder;
+  document.getElementById('editForm').action = `/admin/categories/${id}/edit`;
+  document.getElementById('editModal').classList.remove('hidden');
+}
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>{% block title %}قائمة الطعام{% endblock %} - {{ restaurant.name_ar }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  <style>
+    :root {
+      --primary: {{ restaurant.primary_color }};
+      --secondary: {{ restaurant.secondary_color }};
+    }
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-32">
+  {% block content %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+</body>
+</html>

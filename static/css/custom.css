@@ -1,0 +1,115 @@
+/* Chicken Ville - Custom Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+* { font-family: 'Cairo', sans-serif; }
+
+:root {
+  --teal:  #009B8D;
+  --yellow: #FFB800;
+  --dark:  #1A3A35;
+  --light: #F0FAF9;
+}
+
+/* ─── Hero pattern background for customer pages ─── */
+.cv-hero-bg {
+  background: linear-gradient(135deg, #009B8D 0%, #007A6E 100%);
+  position: relative;
+  overflow: hidden;
+}
+.cv-hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 20% 50%, rgba(255,184,0,0.12) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* ─── Tab buttons ─── */
+.category-tab {
+  background: rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.9);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.category-tab:hover,
+.category-tab.tab-active {
+  background: #FFB800 !important;
+  border-color: #FFB800 !important;
+  color: #1A3A35 !important;
+  box-shadow: 0 4px 12px rgba(255,184,0,0.4);
+}
+
+/* ─── Product card ─── */
+.product-card {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1.5px solid #e8f5f4;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background: white;
+}
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,155,141,0.15);
+}
+
+/* ─── Add button ─── */
+.add-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #FFB800;
+  color: #1A3A35;
+  font-size: 22px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 10px rgba(255,184,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: none; cursor: pointer;
+}
+.add-btn:active { transform: scale(0.88); }
+
+/* ─── Sticky cart ─── */
+#cartBar {
+  background: linear-gradient(135deg, #007A6E, #009B8D);
+  box-shadow: 0 -4px 20px rgba(0,155,141,0.3);
+}
+
+/* ─── Order modal ─── */
+#orderModal .modal-sheet {
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+}
+
+/* ─── Price text ─── */
+.price-text {
+  color: #009B8D;
+  font-weight: 800;
+}
+
+/* ─── Section divider ─── */
+.section-divider {
+  width: 4px; height: 22px;
+  background: linear-gradient(180deg, #FFB800, #009B8D);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ─── Scrollbar hide ─── */
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ─── Animate pulse slow ─── */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+
+/* ─── Admin sidebar - Chicken Ville teal ─── */
+.cv-sidebar { background: linear-gradient(180deg, #007A6E 0%, #009B8D 100%); }

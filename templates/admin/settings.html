@@ -1,0 +1,141 @@
+{% extends "base_admin.html" %}
+{% block title %}الإعدادات{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">إعدادات المطعم</h1>
+
+<form method="POST" action="{{ url_for('admin.save_settings') }}" enctype="multipart/form-data">
+  <div class="grid lg:grid-cols-2 gap-6">
+
+    <!-- Restaurant Info -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+      <h2 class="text-lg font-bold text-gray-700 border-b pb-3">معلومات المطعم</h2>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">اسم المطعم بالعربي *</label>
+        <input type="text" name="name_ar" value="{{ restaurant.name_ar }}" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Restaurant Name in English *</label>
+        <input type="text" name="name_en" value="{{ restaurant.name_en }}" required
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">العنوان بالعربي</label>
+        <input type="text" name="address_ar" value="{{ restaurant.address_ar or '' }}"
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Address in English</label>
+        <input type="text" name="address_en" value="{{ restaurant.address_en or '' }}"
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">رقم الهاتف</label>
+        <input type="text" name="phone" value="{{ restaurant.phone or '' }}"
+               class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+      </div>
+      <div class="flex items-center gap-2 pt-2">
+        <input type="checkbox" name="is_open" id="is_open" {{ 'checked' if restaurant.is_open else '' }}
+               class="w-5 h-5 rounded">
+        <label for="is_open" class="text-sm font-semibold text-gray-700">المطعم مفتوح حالياً</label>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <!-- Logo & Colors -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 class="text-lg font-bold text-gray-700 border-b pb-3">الشعار والألوان</h2>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-600 mb-2">شعار المطعم</label>
+          {% if restaurant.logo_filename %}
+            <div class="mb-3">
+              <img src="{{ url_for('static', filename='uploads/logos/' + restaurant.logo_filename) }}"
+                   class="w-20 h-20 rounded-xl object-cover border border-gray-200">
+            </div>
+          {% endif %}
+          <input type="file" name="logo" accept="image/*"
+                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm">
+          <p class="text-xs text-gray-400 mt-1">اتركه فارغاً للإبقاء على الشعار الحالي</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-600 mb-1">اللون الأساسي</label>
+            <div class="flex items-center gap-2">
+              <input type="color" name="primary_color" value="{{ restaurant.primary_color }}"
+                     class="w-12 h-10 border-0 rounded-lg cursor-pointer">
+              <input type="text" id="primary_hex" value="{{ restaurant.primary_color }}"
+                     class="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm font-mono"
+                     readonly>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600 mb-1">اللون الثانوي</label>
+            <div class="flex items-center gap-2">
+              <input type="color" name="secondary_color" value="{{ restaurant.secondary_color }}"
+                     class="w-12 h-10 border-0 rounded-lg cursor-pointer">
+              <input type="text" id="secondary_hex" value="{{ restaurant.secondary_color }}"
+                     class="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm font-mono"
+                     readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Color Preview -->
+        <div class="rounded-xl overflow-hidden border border-gray-200">
+          <div id="previewHeader" class="p-3 text-white text-center text-sm font-bold"
+               style="background: {{ restaurant.secondary_color }}">
+            {{ restaurant.name_ar }}
+          </div>
+          <div class="p-3 bg-gray-50 flex gap-2">
+            <span id="previewBtn" class="px-4 py-2 rounded-lg text-white text-xs font-bold"
+                  style="background: {{ restaurant.primary_color }}">اطلب الآن</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Credentials -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 class="text-lg font-bold text-gray-700 border-b pb-3">بيانات الدخول</h2>
+        <div>
+          <label class="block text-sm font-semibold text-gray-600 mb-1">اسم المستخدم</label>
+          <input type="text" name="admin_username" value="{{ restaurant.admin_username }}"
+                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-600 mb-1">كلمة مرور جديدة</label>
+          <input type="password" name="new_password" placeholder="اتركه فارغاً للإبقاء على كلمة المرور الحالية"
+                 class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <button type="submit"
+            class="px-8 py-3 rounded-xl text-white font-bold text-base"
+            style="background: {{ restaurant.primary_color }}">
+      حفظ جميع الإعدادات
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const primaryInput = document.querySelector('input[name="primary_color"]');
+  const secondaryInput = document.querySelector('input[name="secondary_color"]');
+
+  primaryInput.addEventListener('input', e => {
+    document.getElementById('primary_hex').value = e.target.value;
+    document.getElementById('previewBtn').style.background = e.target.value;
+  });
+  secondaryInput.addEventListener('input', e => {
+    document.getElementById('secondary_hex').value = e.target.value;
+    document.getElementById('previewHeader').style.background = e.target.value;
+  });
+</script>
+{% endblock %}

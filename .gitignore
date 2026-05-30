@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+instance/
+.env
+*.db
+.claude/
+static/uploads/products/*.jpg
+static/uploads/products/*.png
+static/uploads/products/*.jpeg
+static/uploads/products/*.gif
+static/uploads/logos/*.jpg
+static/uploads/logos/*.png
+static/uploads/logos/*.jpeg

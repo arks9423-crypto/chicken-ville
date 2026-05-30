@@ -1,0 +1,253 @@
+{% extends "base_customer.html" %}
+{% block title %}قائمة الطعام{% endblock %}
+
+{% block content %}
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+<div class="sticky top-0 z-30 cv-hero-bg">
+  <!-- Restaurant Info Bar -->
+  <div class="flex items-center gap-3 px-4 pt-4 pb-3 max-w-2xl mx-auto">
+    {% if restaurant.logo_filename %}
+      <img src="{{ url_for('static', filename='uploads/logos/' + restaurant.logo_filename) }}"
+           class="w-14 h-14 rounded-2xl object-cover shadow-lg border-2 border-white/30 flex-shrink-0">
+    {% else %}
+      <!-- Chicken Ville placeholder icon -->
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white/30 flex-shrink-0"
+           style="background: #FFB800; color: #1A3A35; font-weight: 900;">
+        CV
+      </div>
+    {% endif %}
+
+    <div class="flex-1 min-w-0">
+      <h1 class="text-white font-black text-xl leading-tight tracking-wide">
+        {{ restaurant.name_en }}
+      </h1>
+      <p class="text-white/70 text-xs font-semibold">{{ restaurant.name_ar }}</p>
+    </div>
+
+    <div>
+      {% if restaurant.is_open %}
+        <span class="flex items-center gap-1.5 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <span class="text-white text-xs font-bold">مفتوح</span>
+        </span>
+      {% else %}
+        <span class="flex items-center gap-1.5 bg-red-500/30 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-red-400"></span>
+          <span class="text-white text-xs font-bold">مغلق</span>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Category Tabs -->
+  {% if categories %}
+  <div class="overflow-x-auto scrollbar-hide pb-3 px-4">
+    <div class="flex gap-2 max-w-2xl mx-auto min-w-max">
+      {% for cat in categories %}
+        {% set cat_prods = cat.products | selectattr('is_available') | list %}
+        {% if cat_prods %}
+        <button onclick="scrollToCategory('cat-{{ cat.id }}')"
+                id="tab-{{ cat.id }}"
+                class="category-tab">
+          {{ cat.name_ar }}
+        </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Closed Banner -->
+{% if not restaurant.is_open %}
+<div class="bg-red-500 text-white text-center py-3 text-sm font-bold">
+  المطعم مغلق حالياً — الطلبات متوقفة مؤقتاً
+</div>
+{% endif %}
+
+<!-- ══ MENU CONTENT ══════════════════════════════════════════════ -->
+<div class="max-w-2xl mx-auto px-4 pt-5 pb-4" style="background: #F0FAF9; min-height: 100vh;">
+  {% if categories %}
+    {% for cat in categories %}
+      {% set cat_prods = cat.products | selectattr('is_available') | list %}
+      {% if cat_prods %}
+      <section id="cat-{{ cat.id }}" class="mb-8">
+
+        <!-- Section Header -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="section-divider"></span>
+          <h2 class="text-xl font-black text-gray-800">{{ cat.name_ar }}</h2>
+          <span class="text-gray-400 text-sm font-semibold">/ {{ cat.name_en }}</span>
+        </div>
+
+        <div class="space-y-3">
+          {% for prod in cat_prods %}
+          <div class="product-card flex" style="min-height: 105px;">
+
+            <!-- Info -->
+            <div class="flex-1 p-4 flex flex-col justify-between min-w-0">
+              <div>
+                <h3 class="font-black text-gray-900 text-base leading-snug">{{ prod.name_ar }}</h3>
+                <p class="text-gray-400 text-xs font-semibold mb-1">{{ prod.name_en }}</p>
+                {% if prod.description_ar %}
+                  <p class="text-gray-500 text-xs leading-relaxed line-clamp-2">{{ prod.description_ar }}</p>
+                {% endif %}
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <div>
+                  <span class="font-black text-xl" style="color: #009B8D;">
+                    {{ "%.3f"|format(prod.price) }}
+                  </span>
+                  <span class="text-gray-400 text-xs font-semibold"> ر.ع</span>
+                </div>
+                {% if restaurant.is_open %}
+                <button class="add-btn"
+                        onclick="addToCart({{ prod.id }}, '{{ prod.name_ar|e }}', '{{ prod.name_en|e }}', {{ prod.price }})">
+                  +
+                </button>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Product Image -->
+            {% if prod.image_filename %}
+            <div class="w-28 flex-shrink-0 overflow-hidden">
+              <img src="{{ url_for('static', filename='uploads/products/' + prod.image_filename) }}"
+                   class="w-full h-full object-cover" style="min-height:105px; max-height:130px;">
+            </div>
+            {% else %}
+            <div class="w-24 flex-shrink-0 flex items-center justify-center"
+                 style="background: linear-gradient(135deg, #e8f5f4, #d0eeeb);">
+              <span style="font-size: 36px;">🍗</span>
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-20">
+      <div class="text-6xl mb-4">🍗</div>
+      <p class="text-gray-400 font-bold">لا توجد منتجات متاحة حالياً</p>
+    </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="text-center py-6 text-gray-400 text-xs">
+    <p class="font-bold" style="color: #009B8D;">Chicken Ville</p>
+    <p>100% Omani Brand • Since 2018</p>
+    {% if restaurant.address_ar %}
+    <p class="mt-1">{{ restaurant.address_ar }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ══ STICKY CART BAR ══════════════════════════════════════════════ -->
+<div id="cartBar" class="hidden fixed bottom-0 left-0 right-0 z-50">
+  <div class="max-w-2xl mx-auto px-4 py-3">
+    <button onclick="openOrderModal()"
+            class="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl font-black text-base shadow-xl"
+            style="background: #FFB800; color: #1A3A35;">
+      <div class="flex items-center gap-3">
+        <span class="bg-white/30 text-sm font-black rounded-full w-7 h-7 flex items-center justify-center"
+              id="cartCountBadge">0</span>
+        <span>عرض السلة</span>
+      </div>
+      <span id="cartTotalDisplay" class="font-black">0.000 ر.ع</span>
+      <span class="text-lg">اطلب الآن →</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ ORDER MODAL ══════════════════════════════════════════════════ -->
+<div id="orderModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-end justify-center"
+     onclick="if(event.target===this) closeOrderModal()">
+  <div class="bg-white w-full max-w-2xl modal-sheet max-h-[92vh] overflow-y-auto">
+
+    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <div>
+        <h3 class="text-lg font-black text-gray-900">تأكيد طلبك</h3>
+        <p class="text-xs text-gray-400">أدخل بيانات سيارتك وسيصلك الطلب</p>
+      </div>
+      <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200">
+        ✕
+      </button>
+    </div>
+
+    <div class="p-5 space-y-5">
+
+      <!-- Cart Summary -->
+      <div>
+        <h4 class="font-bold text-gray-700 text-sm mb-2 flex items-center gap-1">
+          <span>🛒</span> طلبك
+        </h4>
+        <div id="cartSummary" class="space-y-2 rounded-2xl p-3" style="background: #F0FAF9;"></div>
+        <div class="flex justify-between font-black text-base mt-3 px-1">
+          <span class="text-gray-700">الإجمالي</span>
+          <span id="modalTotal" style="color: #009B8D;">0.000 ر.ع</span>
+        </div>
+      </div>
+
+      <hr class="border-gray-100">
+
+      <!-- Car Details -->
+      <div>
+        <h4 class="font-bold text-gray-700 text-sm mb-3 flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-sm"
+                style="background: #FFB800; color: #1A3A35;">🚗</span>
+          بيانات سيارتك
+        </h4>
+
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">رقم اللوحة *</label>
+              <input type="text" id="car_plate" placeholder="A 12345"
+                     class="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-teal-400">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">لون السيارة *</label>
+              <input type="text" id="car_color" placeholder="أبيض / أسود"
+                     class="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-teal-400">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">موديل السيارة</label>
+              <input type="text" id="car_model" placeholder="كامري / باترول"
+                     class="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-teal-400">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-1">رقم الموقف</label>
+              <input type="text" id="parking_spot" placeholder="B-12"
+                     class="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-teal-400">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">ملاحظات</label>
+            <textarea id="order_notes" placeholder="مثال: بدون بصل، حار أقل..." rows="2"
+                      class="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-teal-400 resize-none"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="orderError" class="hidden text-red-600 text-sm bg-red-50 rounded-xl px-4 py-3 font-semibold"></div>
+
+      <button id="submitOrderBtn" onclick="submitOrder()"
+              class="w-full py-4 rounded-2xl font-black text-lg shadow-lg transition-opacity"
+              style="background: #FFB800; color: #1A3A35;">
+        تأكيد الطلب 🚗
+      </button>
+
+      <p class="text-center text-xs text-gray-400 font-semibold">
+        سيتم إيصال طلبك لسيارتك في الباركينج
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}لوحة التحكم{% endblock %} - {{ restaurant.name_ar }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Cairo', sans-serif; }
+    .sidebar-link { transition: all 0.2s; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.15); border-radius: 10px; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        primary: '{{ restaurant.primary_color }}',
+        secondary: '{{ restaurant.secondary_color }}'
+      }}}
+    }
+  </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Mobile Header -->
+<div class="lg:hidden flex items-center justify-between p-4 shadow-sm"
+     style="background: {{ restaurant.secondary_color }}">
+  <span class="text-white font-bold text-lg">{{ restaurant.name_ar }}</span>
+  <button onclick="document.getElementById('sidebar').classList.toggle('hidden')"
+          class="text-white p-1">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+</div>
+
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="hidden lg:flex flex-col w-64 min-h-screen p-5 gap-2 fixed top-0 right-0 h-full z-40 lg:static"
+         style="background: {{ restaurant.secondary_color }}">
+    <div class="flex flex-col items-center py-6 border-b border-white/20 mb-4">
+      {% if restaurant.logo_filename %}
+        <img src="{{ url_for('static', filename='uploads/logos/' + restaurant.logo_filename) }}"
+             class="w-16 h-16 rounded-full object-cover mb-2">
+      {% else %}
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-2"
+             style="background: {{ restaurant.primary_color }}; color: white">
+          {{ restaurant.name_ar[0] }}
+        </div>
+      {% endif %}
+      <span class="text-white font-bold text-sm">{{ restaurant.name_ar }}</span>
+      <span class="text-white/60 text-xs">لوحة التحكم</span>
+    </div>
+
+    <a href="{{ url_for('admin.dashboard') }}"
+       class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/90 text-sm
+              {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      الطلبات
+    </a>
+
+    <a href="{{ url_for('admin.products') }}"
+       class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/90 text-sm
+              {% if request.endpoint == 'admin.products' %}active{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      المنتجات
+    </a>
+
+    <a href="{{ url_for('admin.categories') }}"
+       class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/90 text-sm
+              {% if request.endpoint == 'admin.categories' %}active{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+      </svg>
+      الأقسام
+    </a>
+
+    <a href="{{ url_for('admin.settings') }}"
+       class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/90 text-sm
+              {% if request.endpoint == 'admin.settings' %}active{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0"/>
+      </svg>
+      الإعدادات
+    </a>
+
+    <a href="{{ url_for('admin.qrcode_page') }}"
+       class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/90 text-sm
+              {% if request.endpoint == 'admin.qrcode_page' %}active{% endif %}">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+      </svg>
+      QR Code
+    </a>
+
+    <div class="mt-auto pt-4 border-t border-white/20">
+      <a href="{{ url_for('menu.menu_page') }}" target="_blank"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/70 text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        عرض القائمة
+      </a>
+      <a href="{{ url_for('auth.logout') }}"
+         class="sidebar-link flex items-center gap-3 px-4 py-3 text-white/70 text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        تسجيل الخروج
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 lg:mr-64 p-4 lg:p-8 min-w-0">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium
+                      {% if cat == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

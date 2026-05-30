@@ -1,0 +1,133 @@
+{% extends "base_customer.html" %}
+{% block title %}تم تأكيد طلبك{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="cv-hero-bg">
+  <div class="flex items-center gap-3 px-4 py-4 max-w-2xl mx-auto">
+    {% if restaurant.logo_filename %}
+      <img src="{{ url_for('static', filename='uploads/logos/' + restaurant.logo_filename) }}"
+           class="w-12 h-12 rounded-2xl object-cover border-2 border-white/30">
+    {% else %}
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm border-2 border-white/30"
+           style="background: #FFB800; color: #1A3A35;">CV</div>
+    {% endif %}
+    <div>
+      <span class="text-white font-black text-lg">{{ restaurant.name_en }}</span>
+      <p class="text-white/70 text-xs">{{ restaurant.name_ar }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-2xl mx-auto px-4 pt-6 pb-12" style="background: #F0FAF9; min-height: 100vh;">
+
+  <!-- Success -->
+  <div class="text-center mb-6">
+    <div class="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-5xl mb-4 shadow-xl"
+         style="background: linear-gradient(135deg, #FFB800, #FFA000);">
+      🚗
+    </div>
+    <h1 class="text-2xl font-black text-gray-900 mb-1">تم استلام طلبك!</h1>
+    <p class="text-gray-500 font-semibold text-sm">سيتم إيصال طلبك لسيارتك في الباركينج قريباً</p>
+  </div>
+
+  <!-- Order Number -->
+  <div class="bg-white rounded-3xl shadow-sm p-6 mb-4 text-center border-2"
+       style="border-color: #e8f5f4;">
+    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">رقم طلبك</p>
+    <div class="text-5xl font-black mb-1" style="color: #009B8D; letter-spacing: -1px;">
+      {{ order.order_number }}
+    </div>
+    <p class="text-xs text-gray-400 font-semibold">احتفظ بهذا الرقم للاستفسار</p>
+  </div>
+
+  <!-- Car Details -->
+  <div class="bg-white rounded-3xl shadow-sm p-5 mb-4">
+    <h2 class="font-black text-gray-800 mb-4 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-full flex items-center justify-center text-sm"
+            style="background: #FFB800;">🚗</span>
+      بيانات السيارة
+    </h2>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="rounded-2xl p-3 text-center" style="background: #F0FAF9;">
+        <div class="font-black text-gray-900 text-base">{{ order.car_plate }}</div>
+        <div class="text-gray-400 text-xs font-semibold mt-0.5">رقم اللوحة</div>
+      </div>
+      <div class="rounded-2xl p-3 text-center" style="background: #F0FAF9;">
+        <div class="font-black text-gray-900 text-base">{{ order.car_color }}</div>
+        <div class="text-gray-400 text-xs font-semibold mt-0.5">لون السيارة</div>
+      </div>
+      {% if order.car_model %}
+      <div class="rounded-2xl p-3 text-center" style="background: #F0FAF9;">
+        <div class="font-black text-gray-900 text-base">{{ order.car_model }}</div>
+        <div class="text-gray-400 text-xs font-semibold mt-0.5">الموديل</div>
+      </div>
+      {% endif %}
+      {% if order.parking_spot %}
+      <div class="rounded-2xl p-3 text-center" style="background: #F0FAF9;">
+        <div class="font-black text-gray-900 text-base">{{ order.parking_spot }}</div>
+        <div class="text-gray-400 text-xs font-semibold mt-0.5">رقم الموقف</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Order Items -->
+  <div class="bg-white rounded-3xl shadow-sm p-5 mb-4">
+    <h2 class="font-black text-gray-800 mb-4 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-full flex items-center justify-center text-sm"
+            style="background: #009B8D; color: white;">🍗</span>
+      تفاصيل الطلب
+    </h2>
+    <div class="space-y-3">
+      {% for item in order.items %}
+      <div class="flex justify-between items-center">
+        <div>
+          <span class="font-bold text-gray-800 text-sm">{{ item.product_name_ar }}</span>
+          <span class="text-gray-400 text-xs font-semibold"> × {{ item.quantity }}</span>
+        </div>
+        <span class="font-black text-sm" style="color: #009B8D;">
+          {{ "%.3f"|format(item.unit_price * item.quantity) }} ر.ع
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="border-t-2 border-dashed mt-4 pt-4 flex justify-between items-center"
+         style="border-color: #e8f5f4;">
+      <span class="font-black text-gray-800">الإجمالي</span>
+      <span class="font-black text-2xl" style="color: #009B8D;">
+        {{ "%.3f"|format(order.total_amount) }} ر.ع
+      </span>
+    </div>
+  </div>
+
+  {% if order.notes %}
+  <div class="rounded-2xl p-4 mb-4 text-sm font-semibold" style="background: #fff8e1; color: #7B5800;">
+    <span class="font-black">ملاحظاتك: </span>{{ order.notes }}
+  </div>
+  {% endif %}
+
+  <!-- Status Badge -->
+  <div class="bg-white rounded-2xl p-4 mb-5 flex items-center gap-3 shadow-sm">
+    <span class="w-3 h-3 rounded-full flex-shrink-0 animate-pulse" style="background: #FFB800;"></span>
+    <div class="text-sm">
+      <span class="font-bold text-gray-700">حالة الطلب: </span>
+      <span class="font-black" style="color: #009B8D;">{{ order.status_ar }}</span>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <a href="{{ url_for('menu.menu_page') }}"
+     class="block w-full text-center py-4 rounded-2xl font-black text-base shadow-lg"
+     style="background: #FFB800; color: #1A3A35;">
+    ← العودة للقائمة
+  </a>
+
+  <!-- Footer -->
+  <div class="text-center mt-8 text-xs font-semibold" style="color: #009B8D;">
+    Chicken Ville — 100% Omani Brand
+  </div>
+</div>
+
+{% endblock %}
