@@ -2,7 +2,8 @@ import os
 
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'qrmenu-dev-secret-2024-change-in-production')
+    # Use `or` to catch empty string as well as missing variable
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'qrmenu-fallback-secret-2024-xK9mP'
 
     _db_url = os.environ.get('DATABASE_URL', 'sqlite:///dev.db')
     if _db_url.startswith('postgres://'):
@@ -15,4 +16,4 @@ class Config:
     VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
     VAPID_CLAIMS_EMAIL = os.environ.get('VAPID_EMAIL', 'admin@qrmenu.om')
 
-    MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32MB — base64 inflates size by ~33%
+    MAX_CONTENT_LENGTH = 32 * 1024 * 1024
