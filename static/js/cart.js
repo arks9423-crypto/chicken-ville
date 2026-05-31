@@ -1,27 +1,30 @@
-// Cart state — stored in memory (reset on page reload)
+// QRMenu Customer Cart — Vanilla JS
+'use strict';
+
 let cart = [];
+let discount = 0;
+let discountCode = '';
 
 function addToCart(id, nameAr, nameEn, price) {
   const existing = cart.find(i => i.id === id);
   if (existing) {
-    existing.qty += 1;
+    existing.qty++;
   } else {
-    cart.push({ id, nameAr, nameEn, price: parseFloat(price), qty: 1 });
+    cart.push({ id, nameAr, nameEn, price, qty: 1 });
   }
   updateCartUI();
-  showAddFeedback();
+  showAddFeedback(id);
 }
 
 function removeFromCart(id) {
-  const idx = cart.findIndex(i => i.id === id);
-  if (idx === -1) return;
-  if (cart[idx].qty > 1) {
-    cart[idx].qty -= 1;
+  const existing = cart.find(i => i.id === id);
+  if (!existing) return;
+  if (existing.qty > 1) {
+    existing.qty--;
   } else {
-    cart.splice(idx, 1);
+    cart = cart.filter(i => i.id !== id);
   }
   updateCartUI();
-  renderCartSummary();
 }
 
 function cartTotal() {
@@ -33,160 +36,229 @@ function cartCount() {
 }
 
 function updateCartUI() {
-  const bar = document.getElementById('cartBar');
-  const badge = document.getElementById('cartCountBadge');
-  const totalEl = document.getElementById('cartTotalDisplay');
-
   const count = cartCount();
   const total = cartTotal();
+  const finalTotal = Math.max(0, total - discount);
 
-  if (count > 0) {
-    bar.classList.remove('hidden');
-  } else {
-    bar.classList.add('hidden');
+  const countEl = document.getElementById('cart-count');
+  const totalEl = document.getElementById('cart-total');
+  const cartBar = document.getElementById('cart-bar');
+
+  if (countEl) countEl.textContent = count;
+  if (totalEl) totalEl.textContent = finalTotal.toFixed(3) + ' OMR';
+  if (cartBar) {
+    if (count > 0) cartBar.classList.add('visible');
+    else cartBar.classList.remove('visible');
   }
-  if (badge) badge.textContent = count;
-  if (totalEl) totalEl.textContent = total.toFixed(3) + ' ر.ع';
+
+  // Update product quantity controls
+  cart.forEach(item => {
+    const addBtn = document.getElementById('add-' + item.id);
+    const qtyCtrl = document.getElementById('qty-' + item.id);
+    const qtyVal = document.getElementById('qty-val-' + item.id);
+    if (addBtn) addBtn.style.display = 'none';
+    if (qtyCtrl) qtyCtrl.classList.add('visible');
+    if (qtyVal) qtyVal.textContent = item.qty;
+  });
+
+  // Hide qty controls for removed items
+  document.querySelectorAll('[id^="qty-"]').forEach(el => {
+    const id = parseInt(el.id.replace('qty-', ''));
+    if (!cart.find(i => i.id === id)) {
+      el.classList.remove('visible');
+      const addBtn = document.getElementById('add-' + id);
+      if (addBtn) addBtn.style.display = 'flex';
+    }
+  });
+
+  updateSummary();
 }
 
-function renderCartSummary() {
-  const summaryEl = document.getElementById('cartSummary');
-  const modalTotal = document.getElementById('modalTotal');
-  if (!summaryEl) return;
+function updateSummary() {
+  const subtotal = cartTotal();
+  const finalTotal = Math.max(0, subtotal - discount);
 
+  const stEl = document.getElementById('summary-subtotal');
+  const ttEl = document.getElementById('summary-total');
+  const discRow = document.getElementById('discount-row');
+  const discEl = document.getElementById('summary-discount');
+
+  if (stEl) stEl.textContent = subtotal.toFixed(3) + ' OMR';
+  if (ttEl) ttEl.textContent = finalTotal.toFixed(3) + ' OMR';
+  if (discRow) discRow.style.display = discount > 0 ? 'flex' : 'none';
+  if (discEl) discEl.textContent = '- ' + discount.toFixed(3) + ' OMR';
+}
+
+function renderCartItems() {
+  const container = document.getElementById('cart-items-list');
+  if (!container) return;
   if (cart.length === 0) {
-    summaryEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-2">السلة فارغة</p>';
-    if (modalTotal) modalTotal.textContent = '0.000 ر.ع';
+    container.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:1rem;">السلة فارغة</div>';
     return;
   }
-
-  summaryEl.innerHTML = cart.map(item => `
-    <div class="flex items-center justify-between text-sm">
-      <div class="flex items-center gap-2">
-        <button onclick="removeFromCart(${item.id})"
-                class="w-6 h-6 rounded-full bg-red-100 text-red-500 font-bold text-xs flex items-center justify-center hover:bg-red-200">
-          −
-        </button>
-        <span class="text-gray-700">${item.nameAr}</span>
-        <span class="text-gray-400">× ${item.qty}</span>
+  container.innerHTML = cart.map(item => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-weight:700;font-size:.9rem;">${item.nameAr}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);">${item.price.toFixed(3)} × ${item.qty}</div>
       </div>
-      <span class="font-medium text-gray-800">${(item.price * item.qty).toFixed(3)} ر.ع</span>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span style="font-weight:700;color:var(--primary);">${(item.price * item.qty).toFixed(3)} OMR</span>
+        <div style="display:flex;align-items:center;gap:.3rem;">
+          <button class="qty-btn" onclick="removeFromCart(${item.id});renderCartItems();" style="width:26px;height:26px;font-size:.9rem;">−</button>
+          <span style="min-width:20px;text-align:center;font-weight:700;">${item.qty}</span>
+          <button class="qty-btn" onclick="addToCart(${item.id},'${item.nameAr.replace(/'/g,"\\'")}','${item.nameEn.replace(/'/g,"\\'")}',${item.price});renderCartItems();" style="width:26px;height:26px;font-size:.9rem;">+</button>
+        </div>
+      </div>
     </div>
   `).join('');
-
-  if (modalTotal) modalTotal.textContent = cartTotal().toFixed(3) + ' ر.ع';
 }
 
 function openOrderModal() {
   if (cart.length === 0) return;
-  renderCartSummary();
-  document.getElementById('orderModal').classList.remove('hidden');
+  renderCartItems();
+  updateSummary();
+  document.getElementById('order-overlay').classList.add('open');
+  document.getElementById('order-sheet').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function closeOrderModal() {
-  document.getElementById('orderModal').classList.add('hidden');
+  document.getElementById('order-overlay').classList.remove('open');
+  document.getElementById('order-sheet').classList.remove('open');
   document.body.style.overflow = '';
-  document.getElementById('orderError').classList.add('hidden');
+}
+
+function updateOrderTypeUI() {
+  const select = document.getElementById('order-type-select');
+  if (!select) return;
+  const type = select.value;
+  const carFields = document.getElementById('car-fields');
+  const tableFields = document.getElementById('table-fields');
+  if (carFields) carFields.style.display = type === 'car' ? 'block' : 'none';
+  if (tableFields) tableFields.style.display = type === 'table' ? 'block' : 'none';
+}
+
+async function applyCoupon() {
+  const code = (document.getElementById('coupon-input')?.value || '').trim().toUpperCase();
+  const msgEl = document.getElementById('coupon-msg');
+  if (!code) { if (msgEl) msgEl.textContent = ''; return; }
+
+  try {
+    const res = await fetch('/api/coupons/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, slug: RESTAURANT_SLUG, total: cartTotal() })
+    });
+    const data = await res.json();
+    if (data.valid) {
+      discount = data.discount;
+      discountCode = code;
+      if (msgEl) {
+        msgEl.style.color = 'var(--success)';
+        msgEl.textContent = '✓ ' + data.message;
+      }
+      updateSummary();
+    } else {
+      discount = 0;
+      discountCode = '';
+      if (msgEl) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = '✗ ' + data.message;
+      }
+      updateSummary();
+    }
+  } catch (e) {
+    if (msgEl) { msgEl.style.color = 'var(--danger)'; msgEl.textContent = 'خطأ في التحقق'; }
+  }
 }
 
 async function submitOrder() {
-  const carPlate = document.getElementById('car_plate').value.trim();
-  const carColor = document.getElementById('car_color').value.trim();
-  const carModel = document.getElementById('car_model').value.trim();
-  const parkingSpot = document.getElementById('parking_spot').value.trim();
-  const notes = document.getElementById('order_notes').value.trim();
-  const errorEl = document.getElementById('orderError');
-  const btn = document.getElementById('submitOrderBtn');
+  const errorEl = document.getElementById('order-error');
+  if (errorEl) errorEl.style.display = 'none';
 
-  errorEl.classList.add('hidden');
-
-  if (!carPlate) {
-    showError('يرجى إدخال رقم اللوحة'); return;
-  }
-  if (!carColor) {
-    showError('يرجى إدخال لون السيارة'); return;
-  }
   if (cart.length === 0) {
     showError('السلة فارغة'); return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'جارٍ الإرسال...';
+  // Determine order type
+  let orderType = ORDER_MODE === 'table' ? 'table' : 'car';
+  const typeSelect = document.getElementById('order-type-select');
+  if (typeSelect) orderType = typeSelect.value;
+
+  const carPlate = document.getElementById('car-plate')?.value.trim() || '';
+  const tableNumber = document.getElementById('table-number')?.value.trim() || '';
+  const notes = document.getElementById('order-notes')?.value.trim() || '';
+
+  if (orderType === 'car' && !carPlate) {
+    showError('يرجى إدخال رقم السيارة'); return;
+  }
+  if (orderType === 'table' && !tableNumber) {
+    showError('يرجى إدخال رقم الطاولة'); return;
+  }
+
+  const payload = {
+    slug: RESTAURANT_SLUG,
+    order_type: orderType,
+    car_plate: carPlate,
+    table_number: tableNumber,
+    notes,
+    coupon_code: discountCode,
+    items: cart.map(i => ({ id: i.id, qty: i.qty }))
+  };
 
   try {
-    const res = await fetch('/order/place', {
+    const btn = document.querySelector('[onclick="submitOrder()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'جار الإرسال...'; }
+
+    const res = await fetch('/api/orders/place', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        car_plate: carPlate,
-        car_color: carColor,
-        car_model: carModel,
-        parking_spot: parkingSpot,
-        notes: notes,
-        items: cart.map(i => ({ id: i.id, qty: i.qty }))
-      })
+      body: JSON.stringify(payload)
     });
-
     const data = await res.json();
+
     if (data.success) {
       cart = [];
-      updateCartUI();
-      closeOrderModal();
-      window.location.href = `/order/confirm/${data.order_number}`;
+      window.location.href = data.redirect;
     } else {
-      showError(data.error || 'حدث خطأ، حاول مرة أخرى');
+      showError(data.error || 'حدث خطأ أثناء إرسال الطلب');
+      if (btn) { btn.disabled = false; btn.textContent = '✅ تأكيد الطلب'; }
     }
   } catch (e) {
-    showError('تعذر الاتصال بالخادم');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'تأكيد الطلب 🚗';
+    showError('خطأ في الاتصال بالشبكة');
+    const btn = document.querySelector('[onclick="submitOrder()"]');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ تأكيد الطلب'; }
   }
 }
 
 function showError(msg) {
-  const el = document.getElementById('orderError');
-  el.textContent = msg;
-  el.classList.remove('hidden');
+  const el = document.getElementById('order-error');
+  if (el) { el.textContent = msg; el.style.display = 'flex'; }
 }
 
-function showAddFeedback() {
-  // Brief visual pulse on the cart bar
-  const bar = document.getElementById('cartBar');
-  if (bar) {
-    bar.style.transform = 'scale(1.02)';
-    setTimeout(() => { bar.style.transform = ''; }, 150);
-  }
+function showAddFeedback(id) {
+  const btn = document.getElementById('add-' + id);
+  if (!btn) return;
+  btn.style.transform = 'scale(1.3)';
+  setTimeout(() => { btn.style.transform = ''; }, 200);
 }
 
 function scrollToCategory(id) {
   const el = document.getElementById(id);
-  if (el) {
-    const offset = 140; // header height
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: 'smooth' });
-  }
+  if (!el) return;
+  const offset = 130;
+  const top = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+  // Update active tab
+  document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+  const tabId = id.replace('cat-', 'tab-');
+  const tab = document.getElementById(tabId);
+  if (tab) tab.classList.add('active');
 }
 
-// Highlight active category tab on scroll
-function updateActiveTabs() {
-  const sections = document.querySelectorAll('section[id^="cat-"]');
-  let active = null;
-  sections.forEach(sec => {
-    const rect = sec.getBoundingClientRect();
-    if (rect.top <= 160) active = sec.id.replace('cat-', '');
-  });
-  document.querySelectorAll('.category-tab').forEach(tab => {
-    const tabId = tab.id.replace('tab-', '');
-    if (tabId === active) {
-      tab.style.background = 'rgba(255,255,255,0.25)';
-      tab.style.borderColor = 'rgba(255,255,255,0.7)';
-    } else {
-      tab.style.background = '';
-      tab.style.borderColor = '';
-    }
-  });
-}
-
-window.addEventListener('scroll', updateActiveTabs, { passive: true });
+// Activate first tab on load
+window.addEventListener('DOMContentLoaded', () => {
+  const firstTab = document.querySelector('.category-tab');
+  if (firstTab) firstTab.classList.add('active');
+});

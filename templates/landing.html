@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}QRMenu - منصة طلبات المطاعم عبر QR Code{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav style="background:#fff;border-bottom:1px solid var(--border);padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90;">
+  <div style="font-weight:900;font-size:1.4rem;color:var(--primary);">
+    📱 QRMenu
+  </div>
+  <div style="display:flex;gap:.75rem;align-items:center;">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">تسجيل الدخول</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">سجّل مطعمك</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="landing-hero">
+  <div style="max-width:700px;margin:0 auto;">
+    <div style="font-size:4rem;margin-bottom:1rem;">🍔</div>
+    <h1>منصة طلبات المطاعم<br>عبر QR Code</h1>
+    <p>أنشئ قائمة طعام رقمية لمطعمك، وأعطِ عملاءك تجربة طلب سريعة وأنيقة عبر مسح QR Code.</p>
+    <div class="hero-buttons">
+      <a href="{{ url_for('auth.register') }}" class="hero-btn-primary">🚀 ابدأ مجاناً</a>
+      <a href="{{ url_for('auth.login') }}" class="hero-btn-secondary">تسجيل الدخول</a>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section" style="background:var(--card);">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-title">
+      <h2>كيف يعمل QRMenu؟</h2>
+      <p>ثلاث خطوات بسيطة لتحويل مطعمك إلى تجربة رقمية متكاملة</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;text-align:center;">
+      <div>
+        <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+        <h3 style="margin-bottom:.5rem;">١. أضف قائمتك</h3>
+        <p style="color:var(--text-muted);font-size:.9rem;">أضف أقسامك ومنتجاتك مع الصور والأسعار بسهولة تامة</p>
+      </div>
+      <div>
+        <div style="font-size:3rem;margin-bottom:1rem;">📱</div>
+        <h3 style="margin-bottom:.5rem;">٢. شارك QR Code</h3>
+        <p style="color:var(--text-muted);font-size:.9rem;">اطبع QR Code وضعه أمام مطعمك أو في موقف السيارات</p>
+      </div>
+      <div>
+        <div style="font-size:3rem;margin-bottom:1rem;">🔔</div>
+        <h3 style="margin-bottom:.5rem;">٣. استقبل الطلبات</h3>
+        <p style="color:var(--text-muted);font-size:.9rem;">تصلك الطلبات فوراً في لوحة تحكمك مع إشعار صوتي</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-title">
+      <h2>مميزات المنصة</h2>
+      <p>كل ما تحتاجه لإدارة مطعمك بشكل احترافي</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>4 ثيمات احترافية</h3>
+        <p>اختر من Amber أو Ocean أو Rose أو Slate لتناسب هويتك</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>تحديث فوري</h3>
+        <p>تظهر الطلبات الجديدة في لوحتك كل 5 ثوانٍ بدون تحديث</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📲</div>
+        <h3>تطبيق PWA</h3>
+        <p>قابل للتثبيت على الهاتف كتطبيق أصلي على iOS وAndroid</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>إشعارات صوتية</h3>
+        <p>يصدر المطعم والعميل تنبيهاً صوتياً عند وصول أو جاهزية الطلب</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎟</div>
+        <h3>نظام كوبونات</h3>
+        <p>أنشئ كوبونات خصم نسبية أو ثابتة لجذب العملاء</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>إدارة الموظفين</h3>
+        <p>أضف مدير ومطبخ وكاشير بصلاحيات منفصلة لكل دور</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>تقارير يومية</h3>
+        <p>عرض إيرادات يومية وشهرية وأكثر المنتجات مبيعاً</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🚗</div>
+        <h3>سيارة أو طاولة</h3>
+        <p>دعم توصيل للسيارة أو الطاولة أو الاستلام من الكاشير</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>أمان متكامل</h3>
+        <p>عزل تام بين المطاعم وصلاحيات محكمة لكل مستخدم</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section" style="background:var(--card);">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-title">
+      <h2>الباقات والأسعار</h2>
+      <p>اختر الباقة التي تناسب احتياجات مطعمك</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <h3 style="margin-bottom:.5rem;">الأساسية</h3>
+        <div class="pricing-price">5</div>
+        <div class="pricing-period">ريال عماني / شهرياً</div>
+        <ul class="pricing-features">
+          <li>قائمة طعام إلكترونية</li>
+          <li>QR Code خاص</li>
+          <li>استقبال الطلبات</li>
+          <li>لوحة تحكم أساسية</li>
+        </ul>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-full" style="justify-content:center;">ابدأ الآن</a>
+      </div>
+      <div class="pricing-card featured" style="position:relative;">
+        <div class="pricing-badge">الأكثر شيوعاً</div>
+        <h3 style="margin-bottom:.5rem;">الاحترافية</h3>
+        <div class="pricing-price">15</div>
+        <div class="pricing-period">ريال عماني / شهرياً</div>
+        <ul class="pricing-features">
+          <li>كل مميزات الأساسية</li>
+          <li>إشعارات صوتية</li>
+          <li>تقارير يومية</li>
+          <li>تخصيص الألوان والثيم</li>
+          <li>شعار خاص</li>
+          <li>إدارة الموظفين</li>
+          <li>كوبونات الخصم</li>
+        </ul>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary w-full" style="justify-content:center;">ابدأ الآن</a>
+      </div>
+      <div class="pricing-card">
+        <h3 style="margin-bottom:.5rem;">المميزة</h3>
+        <div class="pricing-price">25</div>
+        <div class="pricing-period">ريال عماني / شهرياً</div>
+        <ul class="pricing-features">
+          <li>كل مميزات الاحترافية</li>
+          <li>تطبيق PWA قابل للتثبيت</li>
+          <li>إحصائيات متقدمة</li>
+          <li>دومين فرعي</li>
+          <li>إشعارات Web Push</li>
+          <li>دعم أولوية</li>
+        </ul>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary w-full" style="justify-content:center;">ابدأ الآن</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="background:linear-gradient(135deg,var(--primary-dk),var(--primary));color:#fff;padding:4rem 1.5rem;text-align:center;">
+  <h2 style="font-size:2rem;margin-bottom:1rem;">هل أنت مستعد لتحويل مطعمك؟</h2>
+  <p style="opacity:.9;margin-bottom:2rem;font-size:1rem;">انضم إلى مئات المطاعم التي تستخدم QRMenu في سلطنة عمان</p>
+  <a href="{{ url_for('auth.register') }}" style="background:#fff;color:var(--primary-dk);padding:.9rem 2.5rem;border-radius:999px;font-weight:800;font-size:1.05rem;display:inline-block;">
+    سجّل مطعمك مجاناً الآن →
+  </a>
+</section>
+
+<!-- Footer -->
+<footer style="background:#1C1917;color:#A8A29E;padding:2rem 1.5rem;text-align:center;">
+  <p style="font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:.5rem;">📱 QRMenu</p>
+  <p style="font-size:.85rem;">منصة طلبات المطاعم عبر QR Code - مصممة لمطاعم سلطنة عمان</p>
+  <p style="font-size:.8rem;margin-top:.75rem;">العملة: ريال عماني OMR &nbsp;|&nbsp; 2024 جميع الحقوق محفوظة</p>
+</footer>
+{% endblock %}

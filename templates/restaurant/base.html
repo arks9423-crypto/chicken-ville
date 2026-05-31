@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="{{ current_user.restaurant.theme if current_user.restaurant else 'amber' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}لوحة التحكم - QRMenu{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      {% if current_user.restaurant and current_user.restaurant.logo_base64 %}
+        <img src="{{ current_user.restaurant.logo_base64 }}" class="sidebar-logo-img" alt="logo">
+      {% else %}
+        <div class="sidebar-logo-placeholder">
+          {{ (current_user.restaurant.name_ar[0] if current_user.restaurant else 'Q') }}
+        </div>
+      {% endif %}
+      <div class="sidebar-brand">
+        {{ current_user.restaurant.name_ar if current_user.restaurant else 'QRMenu' }}
+        <span>{{ current_user.role_ar }}</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">الطلبات</div>
+      <a href="{{ url_for('restaurant.dashboard') }}" class="sidebar-link {% if request.endpoint == 'restaurant.dashboard' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        لوحة الطلبات
+      </a>
+      <a href="{{ url_for('restaurant.kitchen') }}" class="sidebar-link {% if request.endpoint == 'restaurant.kitchen' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v4H3z"/><path d="M3 10h18v11H3z"/><line x1="9" y1="10" x2="9" y2="21"/><line x1="15" y1="10" x2="15" y2="21"/></svg>
+        شاشة المطبخ
+      </a>
+
+      {% if current_user.role in ('owner', 'manager') %}
+      <div class="sidebar-section-title">القائمة</div>
+      <a href="{{ url_for('restaurant.products') }}" class="sidebar-link {% if request.endpoint in ('restaurant.products', 'restaurant.add_product') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6"/></svg>
+        المنتجات
+      </a>
+      <a href="{{ url_for('restaurant.categories') }}" class="sidebar-link {% if request.endpoint == 'restaurant.categories' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        الأقسام
+      </a>
+      <a href="{{ url_for('restaurant.coupons') }}" class="sidebar-link {% if request.endpoint == 'restaurant.coupons' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        الكوبونات
+      </a>
+
+      <div class="sidebar-section-title">التقارير</div>
+      <a href="{{ url_for('restaurant.reports') }}" class="sidebar-link {% if request.endpoint == 'restaurant.reports' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        التقارير اليومية
+      </a>
+      {% endif %}
+
+      {% if current_user.role == 'owner' %}
+      <div class="sidebar-section-title">الإعدادات</div>
+      <a href="{{ url_for('restaurant.staff') }}" class="sidebar-link {% if request.endpoint == 'restaurant.staff' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        الموظفون
+      </a>
+      <a href="{{ url_for('restaurant.settings') }}" class="sidebar-link {% if request.endpoint == 'restaurant.settings' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        الإعدادات
+      </a>
+      <a href="{{ url_for('restaurant.qrcode_page') }}" class="sidebar-link {% if request.endpoint == 'restaurant.qrcode_page' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3v3m0-6h-3v3m6 3v-3"/><path d="M11 3v5m0-5H9m2 5H9m5-5h-2"/><path d="M11 16v5m0-5H9m2 5H9"/></svg>
+        QR Code
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.9rem;">
+          {{ current_user.username[0].upper() }}
+        </div>
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--sidebar-text);">{{ current_user.username }}</div>
+          <div style="font-size:.75rem;color:var(--sidebar-muted);">{{ current_user.role_ar }}</div>
+        </div>
+      </div>
+      {% if current_user.restaurant %}
+      <a href="/r/{{ current_user.restaurant.slug }}/" target="_blank" class="sidebar-link" style="margin:0 0 .25rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        عرض القائمة
+      </a>
+      {% endif %}
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="margin:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        تسجيل الخروج
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        <button class="btn btn-secondary btn-sm" id="sidebar-toggle" style="display:none;" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          ☰
+        </button>
+        <div class="topbar-title">{% block page_title %}لوحة التحكم{% endblock %}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        {% if current_user.restaurant %}
+          <span class="badge {% if current_user.restaurant.is_open %}badge-active{% else %}badge-inactive{% endif %}">
+            {% if current_user.restaurant.is_open %}🟢 مفتوح{% else %}🔴 مغلق{% endif %}
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding:1rem 1.5rem 0;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% elif category == 'error' %}✗{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script>
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => {
+      el.style.transition = 'opacity .5s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 500);
+    });
+  }, 4000);
+
+  // Mobile sidebar toggle
+  if (window.innerWidth <= 900) {
+    document.getElementById('sidebar-toggle').style.display = 'flex';
+  }
+  window.addEventListener('resize', () => {
+    const toggle = document.getElementById('sidebar-toggle');
+    if (toggle) toggle.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+  });
+</script>
+<script src="{{ url_for('static', filename='js/image-compress.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

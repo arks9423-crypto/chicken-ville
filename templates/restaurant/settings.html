@@ -1,0 +1,152 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}الإعدادات - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}إعدادات المطعم{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+
+  <!-- Restaurant Info -->
+  <div class="card">
+    <div class="card-header">🏪 معلومات المطعم</div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('restaurant.settings') }}">
+        <input type="hidden" name="action" value="info">
+        <div class="form-group">
+          <label class="form-label">اسم المطعم بالعربية *</label>
+          <input type="text" name="name_ar" class="form-control" value="{{ restaurant.name_ar }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Restaurant Name (English) *</label>
+          <input type="text" name="name_en" class="form-control" value="{{ restaurant.name_en }}" required dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">رقم الهاتف</label>
+          <input type="tel" name="phone" class="form-control" value="{{ restaurant.phone or '' }}" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">البريد الإلكتروني</label>
+          <input type="email" name="email" class="form-control" value="{{ restaurant.email or '' }}" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">وضع الطلبات</label>
+          <select name="order_mode" class="form-control">
+            <option value="car" {% if restaurant.order_mode == 'car' %}selected{% endif %}>🚗 توصيل للسيارة فقط</option>
+            <option value="table" {% if restaurant.order_mode == 'table' %}selected{% endif %}>🪑 طاولة فقط</option>
+            <option value="both" {% if restaurant.order_mode == 'both' %}selected{% endif %}>🚗🪑 كلاهما</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;">
+          <input type="checkbox" name="is_open" id="is_open" {% if restaurant.is_open %}checked{% endif %}>
+          <label for="is_open" style="font-weight:700;cursor:pointer;">المطعم مفتوح لاستقبال الطلبات</label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">شعار المطعم</label>
+          <div class="image-upload-area" onclick="document.getElementById('logo-input').click()">
+            {% if restaurant.logo_base64 %}
+              <img id="logo-preview" src="{{ restaurant.logo_base64 }}" style="max-width:100px;max-height:100px;border-radius:50%;margin:0 auto;" alt="Logo">
+            {% else %}
+              <img id="logo-preview" style="max-width:100px;max-height:100px;border-radius:50%;margin:0 auto;display:none;" alt="Logo">
+              <div id="logo-placeholder" style="font-size:.85rem;color:var(--text-muted);">📷 اضغط لرفع الشعار</div>
+            {% endif %}
+          </div>
+          <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="previewLogo(this)">
+          <input type="hidden" name="logo_base64" id="logo-b64">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">حفظ المعلومات</button>
+      </form>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:1.5rem;">
+    <!-- Theme -->
+    <div class="card">
+      <div class="card-header">🎨 الثيم والألوان</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('restaurant.settings') }}" id="theme-form">
+          <input type="hidden" name="action" value="theme">
+
+          <div class="form-group">
+            <label class="form-label">اختر الثيم</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+              {% for theme, label, color in [('amber', 'Amber 🔥 (سريع)', '#F59E0B'), ('ocean', 'Ocean 🌊 (فاخر)', '#0EA5E9'), ('rose', 'Rose 🌹 (كافيه)', '#F43F5E'), ('slate', 'Slate 💼 (رسمي)', '#475569')] %}
+              <label style="display:flex;align-items:center;gap:.5rem;padding:.75rem;border:2px solid {% if restaurant.theme == theme %}{{ color }}{% else %}var(--border){% endif %};border-radius:var(--radius-sm);cursor:pointer;font-weight:600;font-size:.85rem;background:{% if restaurant.theme == theme %}{{ color }}15{% else %}transparent{% endif %};" for="theme-{{ theme }}">
+                <input type="radio" name="theme" id="theme-{{ theme }}" value="{{ theme }}" {% if restaurant.theme == theme %}checked{% endif %} style="display:none;" onchange="onThemeChange('{{ color }}')">
+                <span style="width:20px;height:20px;border-radius:50%;background:{{ color }};flex-shrink:0;"></span>
+                {{ label }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">اللون الرئيسي</label>
+              <input type="color" name="primary_color" id="primary-color" class="form-control" value="{{ restaurant.primary_color }}" style="height:48px;padding:.25rem;" onchange="updatePreviewColor(this.value)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">اللون الثانوي</label>
+              <input type="color" name="secondary_color" id="secondary-color" class="form-control" value="{{ restaurant.secondary_color }}" style="height:48px;padding:.25rem;">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">حفظ الثيم</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="card">
+      <div class="card-header">🔒 تغيير كلمة المرور</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('restaurant.settings') }}">
+          <input type="hidden" name="action" value="password">
+          <div class="form-group">
+            <label class="form-label">كلمة المرور الحالية</label>
+            <input type="password" name="current_password" class="form-control" required autocomplete="current-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">كلمة المرور الجديدة</label>
+            <input type="password" name="new_password" class="form-control" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-warning w-full" style="justify-content:center;">تغيير كلمة المرور</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Open/Close -->
+    <div class="card">
+      <div class="card-header">🟢 حالة المطعم</div>
+      <div class="card-body" style="text-align:center;">
+        <div style="font-size:3rem;margin-bottom:.75rem;">{% if restaurant.is_open %}🟢{% else %}🔴{% endif %}</div>
+        <p style="font-weight:700;font-size:1.1rem;margin-bottom:1rem;">
+          المطعم {% if restaurant.is_open %}مفتوح{% else %}مغلق{% endif %} حالياً
+        </p>
+        <form method="POST" action="{{ url_for('restaurant.settings') }}">
+          <input type="hidden" name="action" value="toggle_open">
+          <button type="submit" class="btn {% if restaurant.is_open %}btn-danger{% else %}btn-success{% endif %} btn-lg" style="justify-content:center;">
+            {% if restaurant.is_open %}إغلاق المطعم{% else %}فتح المطعم{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewLogo(input) {
+  compressLogo(input, 'logo-preview', 'logo-placeholder', 'logo-b64');
+}
+
+function onThemeChange(color) {
+  document.getElementById('primary-color').value = color;
+}
+
+function updatePreviewColor(color) {
+  document.documentElement.style.setProperty('--primary', color);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}الأقسام - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}إدارة الأقسام{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:320px 1fr;gap:1.5rem;align-items:start;">
+
+  <!-- Add Form -->
+  <div class="card">
+    <div class="card-header">➕ إضافة قسم جديد</div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('restaurant.add_category') }}">
+        <div class="form-group">
+          <label class="form-label">الاسم بالعربية *</label>
+          <input type="text" name="name_ar" class="form-control" placeholder="مثال: سندويشات" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Name in English *</label>
+          <input type="text" name="name_en" class="form-control" placeholder="e.g. Sandwiches" required dir="ltr">
+        </div>
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">إضافة القسم</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Categories List -->
+  <div class="card">
+    <div class="card-header">
+      📋 الأقسام ({{ categories|length }})
+    </div>
+    {% if categories %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>الترتيب</th>
+            <th>الاسم بالعربية</th>
+            <th>Nom anglais</th>
+            <th>الحالة</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+          <tr>
+            <td style="color:var(--text-muted);font-size:.85rem;">#{{ cat.sort_order }}</td>
+            <td style="font-weight:700;">{{ cat.name_ar }}</td>
+            <td style="color:var(--text-muted);" dir="ltr">{{ cat.name_en }}</td>
+            <td>
+              <span class="badge {% if cat.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                {% if cat.is_active %}نشط{% else %}مخفي{% endif %}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.5rem;">
+                <button class="btn btn-secondary btn-sm" onclick="openEditCat({{ cat.id }}, '{{ cat.name_ar }}', '{{ cat.name_en }}', {{ cat.is_active|tojson }})">تعديل</button>
+                <form method="POST" action="{{ url_for('restaurant.delete_category', cid=cat.id) }}" onsubmit="return confirm('هل تريد حذف القسم؟ سيتم حذف جميع منتجاته أيضاً.')">
+                  <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="text-align:center;color:var(--text-muted);padding:2rem;">
+      لا توجد أقسام بعد. أضف أول قسم من النموذج بجانبك.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-cat-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      تعديل القسم
+      <button class="modal-close" onclick="closeModal('edit-cat-modal')">&times;</button>
+    </div>
+    <form method="POST" id="edit-cat-form">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">الاسم بالعربية *</label>
+          <input type="text" name="name_ar" id="edit-cat-ar" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Name in English *</label>
+          <input type="text" name="name_en" id="edit-cat-en" class="form-control" required dir="ltr">
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <input type="checkbox" name="is_active" id="edit-cat-active">
+          <label for="edit-cat-active" style="font-weight:600;cursor:pointer;">القسم نشط (ظاهر للعملاء)</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-cat-modal')">إلغاء</button>
+        <button type="submit" class="btn btn-primary">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+function openEditCat(id, nameAr, nameEn, isActive) {
+  document.getElementById('edit-cat-form').action = '/restaurant/categories/' + id + '/edit';
+  document.getElementById('edit-cat-ar').value = nameAr;
+  document.getElementById('edit-cat-en').value = nameEn;
+  document.getElementById('edit-cat-active').checked = isActive;
+  openModal('edit-cat-modal');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) { o.classList.remove('open'); document.body.style.overflow = ''; } });
+});
+</script>
+{% endblock %}

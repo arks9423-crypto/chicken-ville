@@ -1,0 +1,113 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}QR Code - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}QR Code المطعم{% endblock %}
+
+{% block content %}
+<div class="qr-container">
+  <div class="card">
+    <div class="card-header" style="justify-content:center;">📱 QR Code خاص بمطعمك</div>
+    <div class="card-body" style="text-align:center;">
+
+      <!-- QR Code Image -->
+      <div class="qr-box">
+        <img src="data:image/png;base64,{{ qr_image_b64 }}" alt="QR Code" style="max-width:280px;margin:0 auto;border-radius:var(--radius-sm);" onerror="this.parentNode.innerHTML='<div style=\'font-size:5rem;\'>📱</div><p style=\'color:var(--text-muted)\'>QR Code</p>'">
+      </div>
+
+      <!-- Restaurant URL -->
+      <div class="qr-url" id="menu-url">
+        {{ request.host_url }}r/{{ restaurant.slug }}/
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
+        <a href="{{ url_for('restaurant.download_qrcode') }}" class="btn btn-primary">
+          ⬇ تحميل QR PNG
+        </a>
+        <button class="btn btn-secondary" onclick="copyUrl()">
+          📋 نسخ الرابط
+        </button>
+        <button class="btn btn-secondary" onclick="window.print()">
+          🖨 طباعة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Instructions -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-header">📋 تعليمات الاستخدام</div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:flex;align-items:flex-start;gap:.75rem;">
+          <span style="font-size:1.5rem;flex-shrink:0;">1️⃣</span>
+          <div>
+            <div style="font-weight:700;">حمّل QR Code بصيغة PNG</div>
+            <div style="color:var(--text-muted);font-size:.9rem;">اضغط على "تحميل QR PNG" للحصول على الصورة بجودة عالية</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;">
+          <span style="font-size:1.5rem;flex-shrink:0;">2️⃣</span>
+          <div>
+            <div style="font-weight:700;">اطبع وضع QR Code</div>
+            <div style="color:var(--text-muted);font-size:.9rem;">ضعه عند مدخل المطعم، أو في موقف السيارات، أو على الطاولات</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;">
+          <span style="font-size:1.5rem;flex-shrink:0;">3️⃣</span>
+          <div>
+            <div style="font-weight:700;">يمسح العميل QR Code</div>
+            <div style="color:var(--text-muted);font-size:.9rem;">يصل مباشرة لقائمتك الإلكترونية بدون تطبيق أو تسجيل</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:.75rem;">
+          <span style="font-size:1.5rem;flex-shrink:0;">4️⃣</span>
+          <div>
+            <div style="font-weight:700;">يصلك الطلب فوراً</div>
+            <div style="color:var(--text-muted);font-size:.9rem;">تستقبل الطلب في لوحة تحكمك مع صوت تنبيه</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Link Preview -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-header">🔗 معاينة رابط المطعم</div>
+    <div class="card-body" style="text-align:center;">
+      <a href="/r/{{ restaurant.slug }}/" target="_blank" class="btn btn-primary btn-lg" style="justify-content:center;">
+        🌐 فتح قائمة الطعام
+      </a>
+      <p style="color:var(--text-muted);font-size:.85rem;margin-top:.75rem;">
+        يمكنك مشاركة هذا الرابط مباشرة على وسائل التواصل الاجتماعي
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+@media print {
+  .sidebar, .topbar, .main-content > :not(.page-content), .card:not(:first-child), a, button { display:none!important; }
+  .qr-container { max-width:400px; margin:0 auto; }
+  .qr-box { border:2px solid #333; padding:1rem; }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyUrl() {
+  const url = document.getElementById('menu-url').textContent.trim();
+  navigator.clipboard.writeText(url).then(() => {
+    alert('تم نسخ الرابط!');
+  }).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    alert('تم نسخ الرابط!');
+  });
+}
+</script>
+{% endblock %}

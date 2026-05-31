@@ -1,0 +1,70 @@
+/* ─── QRMenu Theme System ─── */
+/* Applied via data-theme attribute on <html> */
+
+/* ─── Ocean (فاخر / Luxury) ─── */
+[data-theme="ocean"] {
+  --primary:      #0EA5E9;
+  --primary-dk:   #0284C7;
+  --primary-lt:   #E0F2FE;
+  --accent:       #075985;
+  --bg:           #F0F9FF;
+  --bg2:          #E0F2FE;
+  --card:         #FFFFFF;
+  --text:         #0C4A6E;
+  --text-muted:   #64748B;
+  --border:       #BAE6FD;
+  --sidebar-bg:   #0C4A6E;
+  --sidebar-text: #E0F2FE;
+  --sidebar-muted:#93C5FD;
+}
+
+/* ─── Rose (كافيهات / Cafes) ─── */
+[data-theme="rose"] {
+  --primary:      #F43F5E;
+  --primary-dk:   #E11D48;
+  --primary-lt:   #FFE4E6;
+  --accent:       #881337;
+  --bg:           #FFF1F2;
+  --bg2:          #FFE4E6;
+  --card:         #FFFFFF;
+  --text:         #1C1917;
+  --text-muted:   #9F1239;
+  --border:       #FECDD3;
+  --sidebar-bg:   #881337;
+  --sidebar-text: #FFE4E6;
+  --sidebar-muted:#FDA4AF;
+}
+
+/* ─── Slate (رسمي / Corporate) ─── */
+[data-theme="slate"] {
+  --primary:      #475569;
+  --primary-dk:   #334155;
+  --primary-lt:   #F1F5F9;
+  --accent:       #1E293B;
+  --bg:           #F8FAFC;
+  --bg2:          #F1F5F9;
+  --card:         #FFFFFF;
+  --text:         #0F172A;
+  --text-muted:   #64748B;
+  --border:       #E2E8F0;
+  --sidebar-bg:   #1E293B;
+  --sidebar-text: #CBD5E1;
+  --sidebar-muted:#64748B;
+}
+
+/* ─── Amber (default — also explicit) ─── */
+[data-theme="amber"] {
+  --primary:      #F59E0B;
+  --primary-dk:   #D97706;
+  --primary-lt:   #FEF3C7;
+  --accent:       #92400E;
+  --bg:           #FFFBEB;
+  --bg2:          #FEF9EC;
+  --card:         #FFFFFF;
+  --text:         #1C1917;
+  --text-muted:   #78716C;
+  --border:       #E7E5E4;
+  --sidebar-bg:   #1C1917;
+  --sidebar-text: #F5F5F4;
+  --sidebar-muted:#A8A29E;
+}

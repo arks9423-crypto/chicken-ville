@@ -1,0 +1,250 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}المنتجات - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}إدارة المنتجات{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+  <div>
+    <span style="color:var(--text-muted);font-size:.9rem;">{{ products|length }} منتج في {{ categories|length }} قسم</span>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('add-product-modal')">+ إضافة منتج</button>
+</div>
+
+{% if not categories %}
+<div class="card" style="text-align:center;padding:3rem;">
+  <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+  <h3>لا توجد أقسام بعد</h3>
+  <p style="color:var(--text-muted);">أضف أقساماً أولاً من صفحة الأقسام ثم أضف المنتجات</p>
+  <a href="{{ url_for('restaurant.categories') }}" class="btn btn-primary" style="margin-top:1rem;">إدارة الأقسام</a>
+</div>
+{% else %}
+
+{% for category in categories %}
+  {% set cat_products = products|selectattr('category_id', 'equalto', category.id)|list %}
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      {{ category.name_ar }} / {{ category.name_en }}
+      <span class="badge badge-primary" style="margin-right:auto;">{{ cat_products|length }} منتج</span>
+    </div>
+    <div class="card-body">
+      {% if cat_products %}
+        <div class="product-grid">
+          {% for product in cat_products %}
+          <div class="product-card">
+            <div class="product-card-img">
+              {% if product.image_base64 %}
+                <img src="{{ product.image_base64 }}" alt="{{ product.name_ar }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                <span style="font-size:2.5rem;color:var(--text-muted);">🍽</span>
+              {% endif %}
+            </div>
+            <div class="product-card-body">
+              <div class="product-card-name">{{ product.name_ar }}</div>
+              <div style="font-size:.8rem;color:var(--text-muted);">{{ product.name_en }}</div>
+              <div class="product-card-price">{{ '%.3f'|format(product.price|float) }} OMR</div>
+              <div style="margin-top:.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">
+                <span class="badge {% if product.is_available %}badge-active{% else %}badge-inactive{% endif %}">
+                  {% if product.is_available %}متوفر{% else %}غير متوفر{% endif %}
+                </span>
+                {% if product.is_featured %}<span class="badge badge-primary">⭐ مميز</span>{% endif %}
+              </div>
+            </div>
+            <div class="product-card-footer">
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal({{ product.id }}, {{ {'name_ar': product.name_ar, 'name_en': product.name_en, 'description_ar': product.description_ar or '', 'price': product.price|float, 'category_id': product.category_id, 'is_available': product.is_available, 'is_featured': product.is_featured, 'image_base64': product.image_base64 or ''}|tojson }})">تعديل</button>
+              <form method="POST" action="{{ url_for('restaurant.toggle_product', pid=product.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-sm {% if product.is_available %}btn-warning{% else %}btn-success{% endif %}">
+                  {% if product.is_available %}إيقاف{% else %}تفعيل{% endif %}
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('restaurant.delete_product', pid=product.id) }}" style="display:inline;" onsubmit="return confirm('هل تريد حذف المنتج؟')">
+                <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:.9rem;">لا توجد منتجات في هذا القسم</div>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+{% endif %}
+
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="add-product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      إضافة منتج جديد
+      <button class="modal-close" onclick="closeModal('add-product-modal')">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('restaurant.add_product') }}">
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">الاسم بالعربية *</label>
+            <input type="text" name="name_ar" class="form-control" required placeholder="اسم المنتج">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name in English *</label>
+            <input type="text" name="name_en" class="form-control" required placeholder="Product name" dir="ltr">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">وصف بالعربية</label>
+          <textarea name="description_ar" class="form-control" rows="2" placeholder="وصف المنتج (اختياري)"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">السعر (OMR) *</label>
+            <input type="number" name="price" class="form-control" step="0.001" min="0" required placeholder="0.000" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">القسم *</label>
+            <select name="category_id" class="form-control" required>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name_ar }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">صورة المنتج</label>
+          <div class="image-upload-area" onclick="document.getElementById('add-img-input').click()">
+            <img id="add-img-preview" class="image-preview" style="display:none;">
+            <div id="add-img-placeholder">
+              <div style="font-size:2rem;margin-bottom:.5rem;">📷</div>
+              <div style="font-size:.85rem;color:var(--text-muted);">اضغط لاختيار صورة</div>
+            </div>
+          </div>
+          <input type="file" id="add-img-input" accept="image/*" style="display:none;" onchange="compressAndPreview(this,'add-img-preview','add-img-placeholder','add-image-b64')">
+          <input type="hidden" name="image_base64" id="add-image-b64">
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;">
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.9rem;">
+            <input type="checkbox" name="is_featured"> منتج مميز ⭐
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('add-product-modal')">إلغاء</button>
+        <button type="submit" class="btn btn-primary">إضافة المنتج</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal-overlay" id="edit-product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      تعديل المنتج
+      <button class="modal-close" onclick="closeModal('edit-product-modal')">&times;</button>
+    </div>
+    <form method="POST" id="edit-product-form">
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">الاسم بالعربية *</label>
+            <input type="text" name="name_ar" id="edit-name-ar" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name in English *</label>
+            <input type="text" name="name_en" id="edit-name-en" class="form-control" required dir="ltr">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">وصف بالعربية</label>
+          <textarea name="description_ar" id="edit-desc-ar" class="form-control" rows="2"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">السعر (OMR)</label>
+            <input type="number" name="price" id="edit-price" class="form-control" step="0.001" min="0" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">القسم</label>
+            <select name="category_id" id="edit-category" class="form-control">
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name_ar }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">صورة جديدة (اختياري)</label>
+          <div class="image-upload-area" onclick="document.getElementById('edit-img-input').click()">
+            <img id="edit-img-preview" class="image-preview" style="display:none;">
+            <div id="edit-img-placeholder" style="font-size:.85rem;color:var(--text-muted);">اضغط لتغيير الصورة</div>
+          </div>
+          <input type="file" id="edit-img-input" accept="image/*" style="display:none;" onchange="compressAndPreview(this,'edit-img-preview','edit-img-placeholder','edit-image-b64')">
+          <input type="hidden" name="image_base64" id="edit-image-b64">
+        </div>
+        <div style="display:flex;gap:1.5rem;">
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.9rem;">
+            <input type="checkbox" name="is_available" id="edit-available"> متوفر
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.9rem;">
+            <input type="checkbox" name="is_featured" id="edit-featured"> مميز ⭐
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-product-modal')">إلغاء</button>
+        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openEditModal(id, product) {
+  document.getElementById('edit-product-form').action = '/restaurant/products/' + id + '/edit';
+  document.getElementById('edit-name-ar').value = product.name_ar || '';
+  document.getElementById('edit-name-en').value = product.name_en || '';
+  document.getElementById('edit-desc-ar').value = product.description_ar || '';
+  document.getElementById('edit-price').value = parseFloat(product.price || 0).toFixed(3);
+  document.getElementById('edit-category').value = product.category_id;
+  document.getElementById('edit-available').checked = product.is_available;
+  document.getElementById('edit-featured').checked = product.is_featured;
+
+  const preview = document.getElementById('edit-img-preview');
+  const placeholder = document.getElementById('edit-img-placeholder');
+  if (product.image_base64) {
+    preview.src = product.image_base64;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+  }
+
+  openModal('edit-product-modal');
+}
+
+function previewImage(input, previewId, placeholderId, hiddenId) {
+  compressAndPreview(input, previewId, placeholderId, hiddenId);
+}
+
+// Close modals when clicking overlay
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+});
+</script>
+{% endblock %}

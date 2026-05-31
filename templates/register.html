@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}تسجيل مطعم جديد - QRMenu{% endblock %}
+
+{% block content %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg);">
+  <div style="width:100%;max-width:520px;">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div style="font-size:2.5rem;margin-bottom:.4rem;">🏪</div>
+      <h1 style="font-size:1.6rem;">تسجيل مطعم جديد</h1>
+      <p style="color:var(--text-muted);font-size:.9rem;">أنشئ حسابك وابدأ رحلتك الرقمية</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.register') }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">اسم المطعم بالعربية *</label>
+              <input type="text" name="name_ar" class="form-control" placeholder="مثال: مطعم الواحة" required value="{{ form_data.get('name_ar', '') }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Restaurant Name (English) *</label>
+              <input type="text" name="name_en" id="name_en" class="form-control" placeholder="e.g. Al Waha Restaurant" required value="{{ form_data.get('name_en', '') }}" dir="ltr">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">رابط المطعم (Slug)</label>
+            <div style="display:flex;align-items:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+              <span style="padding:.6rem .75rem;color:var(--text-muted);font-size:.85rem;white-space:nowrap;border-left:1px solid var(--border);">qrmenu.om/r/</span>
+              <input type="text" id="slug_preview" class="form-control" style="border:none;background:transparent;" placeholder="al-waha" dir="ltr" readonly>
+            </div>
+            <p style="font-size:.75rem;color:var(--text-muted);margin-top:.3rem;">سيُنشأ تلقائياً من اسم المطعم بالإنجليزية</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">رقم الهاتف</label>
+              <input type="tel" name="phone" class="form-control" placeholder="+968 XXXXXXXX" value="{{ form_data.get('phone', '') }}" dir="ltr">
+            </div>
+            <div class="form-group">
+              <label class="form-label">البريد الإلكتروني</label>
+              <input type="email" name="email" class="form-control" placeholder="info@example.com" value="{{ form_data.get('email', '') }}" dir="ltr">
+            </div>
+          </div>
+
+          <hr style="margin:1rem 0;border-color:var(--border);">
+          <p style="font-weight:700;margin-bottom:.75rem;font-size:.95rem;">بيانات الدخول</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">اسم المستخدم *</label>
+              <input type="text" name="username" class="form-control" placeholder="username" required value="{{ form_data.get('username', '') }}" dir="ltr" autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label">كلمة المرور *</label>
+              <input type="password" name="password" class="form-control" placeholder="6 أحرف على الأقل" required minlength="6" autocomplete="new-password">
+            </div>
+          </div>
+
+          <div style="background:var(--primary-lt);border-radius:var(--radius-sm);padding:.85rem;margin-bottom:1rem;font-size:.85rem;color:var(--accent);">
+            ⏳ سيتم مراجعة طلبك من قِبل إدارة المنصة. ستتمكن من تسجيل الدخول بعد الموافقة.
+          </div>
+
+          <button type="submit" class="btn btn-primary w-full" style="justify-content:center;padding:.75rem;">
+            إرسال طلب التسجيل
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:1.25rem;">
+      <p style="color:var(--text-muted);font-size:.9rem;">
+        لديك حساب بالفعل؟
+        <a href="{{ url_for('auth.login') }}" style="color:var(--primary);font-weight:700;">تسجيل الدخول</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const nameEnInput = document.getElementById('name_en');
+  const slugPreview = document.getElementById('slug_preview');
+
+  function toSlug(str) {
+    return str.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  nameEnInput.addEventListener('input', () => {
+    slugPreview.value = toSlug(nameEnInput.value);
+  });
+</script>
+{% endblock %}

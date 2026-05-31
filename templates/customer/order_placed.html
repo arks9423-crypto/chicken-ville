@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="{{ restaurant.theme }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تم استلام طلبك - {{ restaurant.name_ar }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/themes.css') }}">
+  <meta name="theme-color" content="{{ restaurant.primary_color }}">
+  <style>
+    :root { --primary: {{ restaurant.primary_color }}; --primary-dk: {{ restaurant.secondary_color }}; }
+    body { padding-bottom: 2rem; }
+  </style>
+</head>
+<body style="max-width:480px;margin:0 auto;padding:1.5rem;">
+
+<!-- Ready Banner (shown when order is ready) -->
+<div class="ready-banner" id="ready-banner">
+  🎉 طلبك جاهز الآن! يرجى التوجه لاستلامه.
+</div>
+
+<!-- Restaurant Header -->
+<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+  {% if restaurant.logo_base64 %}
+    <img src="{{ restaurant.logo_base64 }}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" alt="{{ restaurant.name_ar }}">
+  {% else %}
+    <div style="width:48px;height:48px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.2rem;">{{ restaurant.name_ar[0] }}</div>
+  {% endif %}
+  <div>
+    <div style="font-weight:800;">{{ restaurant.name_ar }}</div>
+    <div style="font-size:.8rem;color:var(--text-muted);">{{ restaurant.name_en }}</div>
+  </div>
+</div>
+
+<!-- Success Message -->
+<div style="text-align:center;margin-bottom:2rem;">
+  <div style="font-size:4rem;margin-bottom:.75rem;" id="status-icon">✅</div>
+  <h2 style="margin-bottom:.5rem;">تم استلام طلبك!</h2>
+  <p style="color:var(--text-muted);font-size:.9rem;">يرجى الانتظار في سيارتك وسيتم توصيل الطلب إليك</p>
+</div>
+
+<!-- Order Number -->
+<div style="text-align:center;background:var(--primary-lt);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;border:2px solid var(--primary);">
+  <div style="font-size:.85rem;color:var(--text-muted);font-weight:600;">رقم الطلب</div>
+  <div style="font-size:3rem;font-weight:900;color:var(--primary);letter-spacing:.05em;">{{ order.order_number }}</div>
+  <div style="font-size:.85rem;color:var(--text-muted);">
+    {{ order.created_at.strftime('%H:%M') }}
+    {% if order.order_type == 'car' and order.car_plate %} · سيارة: {{ order.car_plate }}{% endif %}
+    {% if order.order_type == 'table' and order.table_number %} · طاولة: {{ order.table_number }}{% endif %}
+  </div>
+</div>
+
+<!-- Status Tracker -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-body">
+    <div style="font-weight:700;margin-bottom:1.25rem;text-align:center;font-size:.95rem;">حالة الطلب</div>
+    <div class="status-tracker" id="status-tracker">
+      <div class="status-step {% if order.status in ('new','preparing','ready','delivered') %}done{% endif %}" id="step-new">
+        <div class="status-step-dot">📋</div>
+        <div class="status-step-label">استلام</div>
+      </div>
+      <div class="status-line {% if order.status in ('preparing','ready','delivered') %}done{% endif %}"></div>
+      <div class="status-step {% if order.status in ('preparing','ready','delivered') %}done{% elif order.status == 'new' %}{% endif %}" id="step-preparing">
+        <div class="status-step-dot">👨‍🍳</div>
+        <div class="status-step-label">تحضير</div>
+      </div>
+      <div class="status-line {% if order.status in ('ready','delivered') %}done{% endif %}"></div>
+      <div class="status-step {% if order.status in ('ready','delivered') %}done{% endif %}" id="step-ready">
+        <div class="status-step-dot">✅</div>
+        <div class="status-step-label">جاهز</div>
+      </div>
+      <div class="status-line {% if order.status == 'delivered' %}done{% endif %}"></div>
+      <div class="status-step {% if order.status == 'delivered' %}done{% endif %}" id="step-delivered">
+        <div class="status-step-dot">🎉</div>
+        <div class="status-step-label">تسليم</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Items -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div class="card-header">🧾 تفاصيل الطلب</div>
+  <div class="card-body">
+    {% for item in order.items %}
+    <div style="display:flex;justify-content:space-between;padding:.5rem 0;{% if not loop.last %}border-bottom:1px solid var(--border);{% endif %}">
+      <div>
+        <span style="font-weight:700;">{{ item.product_name_ar }}</span>
+        <span style="color:var(--text-muted);font-size:.85rem;"> × {{ item.quantity }}</span>
+      </div>
+      <span style="font-weight:700;color:var(--primary);">{{ '%.3f'|format(item.subtotal) }} OMR</span>
+    </div>
+    {% endfor %}
+    {% if order.discount_amount and order.discount_amount > 0 %}
+    <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-top:1px dashed var(--border);color:var(--success);">
+      <span>خصم</span>
+      <span>- {{ '%.3f'|format(order.discount_amount|float) }} OMR</span>
+    </div>
+    {% endif %}
+    <div style="display:flex;justify-content:space-between;padding:.75rem 0 0;border-top:2px solid var(--border);font-weight:800;font-size:1.05rem;">
+      <span>الإجمالي</span>
+      <span style="color:var(--primary);">{{ '%.3f'|format(order.total_amount|float) }} OMR</span>
+    </div>
+    {% if order.notes %}
+    <div style="margin-top:.75rem;font-size:.85rem;color:var(--text-muted);background:var(--bg2);padding:.5rem .75rem;border-radius:var(--radius-sm);">
+      📝 {{ order.notes }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Sound & Push Notification -->
+{% if order.status not in ('ready', 'delivered') %}
+<div class="card" style="margin-bottom:1.5rem;text-align:center;">
+  <div class="card-body">
+    <div style="font-size:1.5rem;margin-bottom:.5rem;">🔔</div>
+    <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:.75rem;">فعّل الإشعار الصوتي لتنبيهك عند جاهزية طلبك</p>
+    <button class="btn btn-primary" onclick="enableNotification('{{ order.order_number }}')" id="notif-btn">
+      تفعيل إشعار الصوت
+    </button>
+    <div id="notif-status" style="font-size:.8rem;color:var(--text-muted);margin-top:.5rem;"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Rating (shown after delivery) -->
+<div id="rating-section" style="display:{% if order.status == 'delivered' and not order.rating %}block{% else %}none{% endif %};">
+  <div class="card" style="margin-bottom:1.5rem;text-align:center;">
+    <div class="card-body">
+      <div style="font-weight:700;margin-bottom:.75rem;">كيف كانت تجربتك؟</div>
+      <div class="stars" id="stars">
+        {% for i in range(1, 6) %}
+        <span class="star" onclick="setRating({{ i }})" data-rating="{{ i }}">★</span>
+        {% endfor %}
+      </div>
+      <textarea id="rating-comment" class="form-control" rows="2" placeholder="أضف تعليقك (اختياري)" style="margin-top:.75rem;"></textarea>
+      <button class="btn btn-primary" onclick="submitRating('{{ order.order_number }}')" style="margin-top:.75rem;justify-content:center;">إرسال التقييم</button>
+    </div>
+  </div>
+</div>
+
+<!-- Back to menu -->
+<a href="/r/{{ restaurant.slug }}/" class="btn btn-secondary w-full" style="justify-content:center;margin-bottom:1rem;">
+  ← العودة للقائمة
+</a>
+
+<script>
+  const ORDER_NUMBER = '{{ order.order_number }}';
+  let currentStatus = '{{ order.status }}';
+  let soundEnabled = false;
+  let selectedRating = 0;
+  let pollInterval;
+
+  function startPolling() {
+    pollInterval = setInterval(checkStatus, 5000);
+  }
+
+  async function checkStatus() {
+    try {
+      const res = await fetch(`/api/orders/${ORDER_NUMBER}/status`);
+      const data = await res.json();
+      if (data.status !== currentStatus) {
+        currentStatus = data.status;
+        updateStatusUI(data.status);
+      }
+    } catch (e) {}
+  }
+
+  function updateStatusUI(status) {
+    const steps = { new: 0, preparing: 1, ready: 2, delivered: 3 };
+    const statusSteps = ['new', 'preparing', 'ready', 'delivered'];
+    const stepIdx = steps[status] ?? 0;
+
+    statusSteps.forEach((s, i) => {
+      const el = document.getElementById('step-' + s);
+      if (el) {
+        if (i <= stepIdx) el.classList.add('done');
+        else el.classList.remove('done');
+      }
+    });
+
+    if (status === 'ready') {
+      document.getElementById('ready-banner').classList.add('show');
+      document.getElementById('status-icon').textContent = '🎉';
+      if (soundEnabled) playBeep();
+      if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+      clearInterval(pollInterval);
+    }
+
+    if (status === 'delivered') {
+      document.getElementById('rating-section').style.display = 'block';
+      clearInterval(pollInterval);
+    }
+  }
+
+  function enableNotification(orderNumber) {
+    soundEnabled = true;
+    document.getElementById('notif-btn').textContent = '🔔 الإشعار مفعّل';
+    document.getElementById('notif-btn').disabled = true;
+    document.getElementById('notif-status').textContent = 'سيصدر صوت عند جاهزية طلبك';
+    startPolling();
+  }
+
+  function playBeep() {
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+      osc.start();
+      osc.stop(ctx.currentTime + 1.2);
+    } catch (e) {}
+  }
+
+  function setRating(n) {
+    selectedRating = n;
+    document.querySelectorAll('.star').forEach((s, i) => {
+      s.classList.toggle('filled', i < n);
+    });
+  }
+
+  async function submitRating(orderNumber) {
+    if (!selectedRating) { alert('يرجى اختيار تقييم'); return; }
+    const comment = document.getElementById('rating-comment').value;
+    try {
+      await fetch(`/api/orders/${orderNumber}/rate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: selectedRating, comment })
+      });
+      document.getElementById('rating-section').innerHTML = '<div class="card"><div class="card-body" style="text-align:center;padding:2rem;"><div style="font-size:2rem;">🙏</div><p style="font-weight:700;margin-top:.5rem;">شكراً على تقييمك!</p></div></div>';
+    } catch (e) {}
+  }
+
+  // Auto-start polling for non-final statuses
+  if (!['delivered', 'cancelled'].includes(currentStatus)) {
+    startPolling();
+  }
+  if (currentStatus === 'ready') {
+    document.getElementById('ready-banner').classList.add('show');
+  }
+</script>
+</body>
+</html>

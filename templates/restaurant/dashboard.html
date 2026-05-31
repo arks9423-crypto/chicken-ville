@@ -1,0 +1,194 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}لوحة الطلبات - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}لوحة الطلبات{% endblock %}
+
+{% block head_extra %}
+<style>
+  .kanban-grid { display: grid; grid-template-columns: repeat(3,1fr); gap:1.25rem; align-items:start; }
+  @media(max-width:900px){ .kanban-grid { grid-template-columns:1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── الماكرو يجب أن يكون قبل أي استدعاء له ── #}
+{% macro render_order_card(order) %}
+<div class="order-card fade-in" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
+  <div class="order-card-header">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      {% if order.status == 'new' %}<div class="order-new-indicator"></div>{% endif %}
+      <span class="order-number">{{ order.order_number }}</span>
+    </div>
+    <span class="order-time">{{ order.created_at.strftime('%H:%M') }}</span>
+  </div>
+  <div class="order-card-body">
+    <div class="order-identifier">
+      {% if order.order_type == 'car' %}🚗 {{ order.car_plate }}
+      {% elif order.order_type == 'table' %}🪑 طاولة {{ order.table_number }}
+      {% else %}🏪 كاشير{% endif %}
+    </div>
+    <ul class="order-items">
+      {% for item in order.items %}
+      <li>
+        <span>{{ item.product_name_ar }}</span>
+        <span style="color:var(--primary);font-weight:700;">×{{ item.quantity }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% if order.notes %}
+      <div class="order-notes">📝 {{ order.notes }}</div>
+    {% endif %}
+    <div class="order-total">{{ '%.3f'|format(order.total_amount|float) }} OMR</div>
+  </div>
+  <div class="order-actions">
+    {% if order.status == 'new' %}
+      <form method="POST" action="{{ url_for('restaurant.update_order_status', oid=order.id) }}">
+        <input type="hidden" name="status" value="preparing">
+        <button type="submit" class="btn btn-sm" style="background:#0EA5E9;color:#fff;">👨‍🍳 تحضير</button>
+      </form>
+    {% elif order.status == 'preparing' %}
+      <form method="POST" action="{{ url_for('restaurant.update_order_status', oid=order.id) }}">
+        <input type="hidden" name="status" value="ready">
+        <button type="submit" class="btn btn-success btn-sm">✅ جاهز</button>
+      </form>
+    {% elif order.status == 'ready' %}
+      <form method="POST" action="{{ url_for('restaurant.update_order_status', oid=order.id) }}">
+        <input type="hidden" name="status" value="delivered">
+        <button type="submit" class="btn btn-sm" style="background:#6B7280;color:#fff;">📦 تسليم</button>
+      </form>
+    {% endif %}
+    <form method="POST" action="{{ url_for('restaurant.update_order_status', oid=order.id) }}">
+      <input type="hidden" name="status" value="cancelled">
+      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('هل تريد إلغاء الطلب؟')">إلغاء</button>
+    </form>
+  </div>
+</div>
+{% endmacro %}
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div>
+      <div class="stat-value">{{ today_count }}</div>
+      <div class="stat-label">طلبات اليوم</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#DCFCE7;color:#166534;">💰</div>
+    <div>
+      <div class="stat-value" style="font-size:1.3rem;">{{ '%.3f'|format(today_revenue) }}</div>
+      <div class="stat-label">إيرادات اليوم (OMR)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#DBEAFE;color:#1D4ED8;">📅</div>
+    <div>
+      <div class="stat-value">{{ month_count }}</div>
+      <div class="stat-label">طلبات الشهر</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FEF3C7;color:#92400E;">🔔</div>
+    <div>
+      <div class="stat-value" style="color:#F59E0B;" id="new-count">{{ new_orders|length }}</div>
+      <div class="stat-label">طلبات جديدة</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sound button -->
+<button class="sound-btn" id="sound-btn" onclick="enableSound()">
+  🔕 تفعيل صوت الطلبات
+</button>
+
+<!-- Kanban Board -->
+<div class="kanban-grid" id="kanban-board">
+
+  <!-- New -->
+  <div class="kanban-col">
+    <div class="kanban-col-header">
+      <span>🆕 جديد</span>
+      <span class="kanban-col-count" id="count-new">{{ new_orders|length }}</span>
+    </div>
+    <div id="col-new">
+      {% for order in new_orders %}
+        {{ render_order_card(order) }}
+      {% else %}
+        <div id="empty-new" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:.9rem;">لا توجد طلبات جديدة</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Preparing -->
+  <div class="kanban-col" style="background:#EFF6FF;">
+    <div class="kanban-col-header">
+      <span>👨‍🍳 قيد التحضير</span>
+      <span class="kanban-col-count" style="background:#0EA5E9;" id="count-preparing">{{ preparing_orders|length }}</span>
+    </div>
+    <div id="col-preparing">
+      {% for order in preparing_orders %}
+        {{ render_order_card(order) }}
+      {% else %}
+        <div id="empty-preparing" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:.9rem;">لا طلبات قيد التحضير</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Ready -->
+  <div class="kanban-col" style="background:#F0FDF4;">
+    <div class="kanban-col-header">
+      <span>✅ جاهز</span>
+      <span class="kanban-col-count" style="background:#16A34A;" id="count-ready">{{ ready_orders|length }}</span>
+    </div>
+    <div id="col-ready">
+      {% for order in ready_orders %}
+        {{ render_order_card(order) }}
+      {% else %}
+        <div id="empty-ready" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:.9rem;">لا طلبات جاهزة</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Done Orders -->
+{% if done_orders %}
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-header">📦 الطلبات المكتملة والملغية (آخر 30)</div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>الوقت</th>
+          <th>الهوية</th>
+          <th>المنتجات</th>
+          <th>المبلغ</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in done_orders %}
+        <tr>
+          <td style="font-weight:700;color:var(--primary);">{{ order.order_number }}</td>
+          <td style="font-size:.85rem;color:var(--text-muted);">{{ order.created_at.strftime('%H:%M') }}</td>
+          <td>{{ order.identifier }}</td>
+          <td style="font-size:.85rem;">
+            {% for item in order.items %}{{ item.product_name_ar }}{% if not loop.last %}، {% endif %}{% endfor %}
+          </td>
+          <td style="font-weight:700;color:var(--primary);">{{ '%.3f'|format(order.total_amount|float) }} OMR</td>
+          <td><span class="badge {{ order.status_color }}">{{ order.status_ar }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}شاشة المطبخ - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}شاشة المطبخ 👨‍🍳{% endblock %}
+
+{% block head_extra %}
+<style>
+  body { background: #1a1a2e; }
+  .main-content { background: #1a1a2e; }
+  .kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+  .kitchen-card { border-radius: 16px; overflow: hidden; }
+  .k-new { background: #FEF3C7; border: 3px solid #F59E0B; }
+  .k-preparing { background: #DBEAFE; border: 3px solid #0EA5E9; }
+  .k-number { font-size: 2.5rem; font-weight: 900; }
+  .k-item { font-size: 1.2rem; font-weight: 700; padding: .5rem 0; border-bottom: 1px dashed rgba(0,0,0,.15); display: flex; align-items: center; gap: .75rem; }
+  .k-qty { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; }
+  .k-new .k-qty { background: #F59E0B; color: #fff; }
+  .k-preparing .k-qty { background: #0EA5E9; color: #fff; }
+  .k-header { padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+  .k-new .k-header { background: #F59E0B; color: #fff; }
+  .k-preparing .k-header { background: #0EA5E9; color: #fff; }
+  .k-body { padding: .75rem 1.5rem 1.5rem; }
+  .section-label { color: #fff; font-size: 1rem; font-weight: 700; padding: .75rem 0; margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding:0;">
+  <!-- Countdown refresh -->
+  <div style="background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:.6rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+    <span style="color:#94A3B8;font-size:.9rem;">🔄 يتحدث تلقائياً كل 10 ثوانٍ</span>
+    <span style="color:#94A3B8;font-size:.9rem;" id="countdown">10</span>
+  </div>
+
+  {% if not new_orders and not preparing_orders %}
+    <div style="text-align:center;padding:5rem;color:#64748B;">
+      <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#94A3B8;">لا توجد طلبات الآن</div>
+    </div>
+  {% else %}
+
+  {% if new_orders %}
+  <div class="section-label">🆕 طلبات جديدة ({{ new_orders|length }})</div>
+  <div class="kitchen-grid" style="margin-bottom:2rem;">
+    {% for order in new_orders %}
+    <div class="kitchen-card k-new">
+      <div class="k-header">
+        <span class="k-number">{{ order.order_number }}</span>
+        <div style="text-align:left;">
+          <div style="font-size:1rem;font-weight:700;">
+            {% if order.order_type == 'car' %}🚗 {{ order.car_plate }}
+            {% elif order.order_type == 'table' %}🪑 {{ order.table_number }}
+            {% else %}🏪 كاشير{% endif %}
+          </div>
+          <div style="font-size:.85rem;opacity:.85;">{{ order.created_at.strftime('%H:%M') }}</div>
+        </div>
+      </div>
+      <div class="k-body">
+        {% for item in order.items %}
+        <div class="k-item">
+          <span class="k-qty">{{ item.quantity }}</span>
+          <span>{{ item.product_name_ar }}</span>
+        </div>
+        {% endfor %}
+        {% if order.notes %}
+          <div style="margin-top:.75rem;font-size:.9rem;color:#92400E;background:#FEF3C7;padding:.5rem .75rem;border-radius:8px;">
+            📝 {{ order.notes }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if preparing_orders %}
+  <div class="section-label">👨‍🍳 قيد التحضير ({{ preparing_orders|length }})</div>
+  <div class="kitchen-grid">
+    {% for order in preparing_orders %}
+    <div class="kitchen-card k-preparing">
+      <div class="k-header">
+        <span class="k-number">{{ order.order_number }}</span>
+        <div style="text-align:left;">
+          <div style="font-size:1rem;font-weight:700;">
+            {% if order.order_type == 'car' %}🚗 {{ order.car_plate }}
+            {% elif order.order_type == 'table' %}🪑 {{ order.table_number }}
+            {% else %}🏪 كاشير{% endif %}
+          </div>
+          <div style="font-size:.85rem;opacity:.85;">{{ order.created_at.strftime('%H:%M') }}</div>
+        </div>
+      </div>
+      <div class="k-body">
+        {% for item in order.items %}
+        <div class="k-item">
+          <span class="k-qty">{{ item.quantity }}</span>
+          <span>{{ item.product_name_ar }}</span>
+        </div>
+        {% endfor %}
+        {% if order.notes %}
+          <div style="margin-top:.75rem;font-size:.9rem;color:#1D4ED8;background:#DBEAFE;padding:.5rem .75rem;border-radius:8px;">
+            📝 {{ order.notes }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/kitchen.js') }}"></script>
+{% endblock %}

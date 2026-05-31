@@ -1,0 +1,127 @@
+{% extends 'restaurant/base.html' %}
+{% block title %}الكوبونات - {{ current_user.restaurant.name_ar }}{% endblock %}
+{% block page_title %}إدارة الكوبونات{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:340px 1fr;gap:1.5rem;align-items:start;">
+
+  <!-- Add Coupon -->
+  <div class="card">
+    <div class="card-header">🎟 إضافة كوبون خصم</div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('restaurant.add_coupon') }}">
+        <div class="form-group">
+          <label class="form-label">كود الكوبون *</label>
+          <input type="text" name="code" class="form-control" required placeholder="WELCOME10" dir="ltr" style="text-transform:uppercase;">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem;">سيتحول تلقائياً للأحرف الكبيرة</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">نوع الخصم</label>
+          <select name="discount_type" class="form-control" id="discount-type" onchange="updateLabel()">
+            <option value="percentage">نسبة مئوية (%)</option>
+            <option value="fixed">مبلغ ثابت (OMR)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="discount-label">قيمة الخصم (%)</label>
+          <input type="number" name="discount_value" class="form-control" required min="0" step="0.001" placeholder="10" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الحد الأدنى للطلب (OMR)</label>
+          <input type="number" name="min_order" class="form-control" min="0" step="0.001" placeholder="0.000" dir="ltr" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الحد الأقصى للاستخدام</label>
+          <input type="number" name="max_uses" class="form-control" min="1" placeholder="فارغ = غير محدود" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">تاريخ الانتهاء</label>
+          <input type="date" name="expires_at" class="form-control" dir="ltr">
+        </div>
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">إضافة الكوبون</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Coupons List -->
+  <div class="card">
+    <div class="card-header">🎟 الكوبونات ({{ coupons|length }})</div>
+    {% if coupons %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>الخصم</th>
+            <th>الحد الأدنى</th>
+            <th>الاستخدام</th>
+            <th>الانتهاء</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for coupon in coupons %}
+          <tr>
+            <td>
+              <code style="background:var(--bg2);padding:.2rem .5rem;border-radius:4px;font-size:.9rem;font-weight:700;">{{ coupon.code }}</code>
+            </td>
+            <td style="font-weight:700;color:var(--primary);">
+              {% if coupon.discount_type == 'percentage' %}
+                {{ coupon.discount_value|int }}%
+              {% else %}
+                {{ '%.3f'|format(coupon.discount_value|float) }} OMR
+              {% endif %}
+            </td>
+            <td style="font-size:.85rem;">
+              {% if coupon.min_order and coupon.min_order > 0 %}
+                {{ '%.3f'|format(coupon.min_order|float) }} OMR
+              {% else %}
+                لا يوجد
+              {% endif %}
+            </td>
+            <td style="font-size:.85rem;">
+              {{ coupon.used_count }} / {% if coupon.max_uses %}{{ coupon.max_uses }}{% else %}∞{% endif %}
+            </td>
+            <td style="font-size:.85rem;color:var(--text-muted);">
+              {% if coupon.expires_at %}{{ coupon.expires_at.strftime('%Y/%m/%d') }}{% else %}—{% endif %}
+            </td>
+            <td>
+              <span class="badge {% if coupon.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                {% if coupon.is_active %}نشط{% else %}معطل{% endif %}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.4rem;">
+                <form method="POST" action="{{ url_for('restaurant.toggle_coupon', cid=coupon.id) }}">
+                  <button type="submit" class="btn btn-sm {% if coupon.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                    {% if coupon.is_active %}إيقاف{% else %}تفعيل{% endif %}
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('restaurant.delete_coupon', cid=coupon.id) }}" onsubmit="return confirm('هل تريد حذف الكوبون؟')">
+                  <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body" style="text-align:center;color:var(--text-muted);padding:2rem;">
+      لا توجد كوبونات بعد. أضف أول كوبون من النموذج.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateLabel() {
+  const type = document.getElementById('discount-type').value;
+  document.getElementById('discount-label').textContent = type === 'percentage' ? 'قيمة الخصم (%)' : 'قيمة الخصم (OMR)';
+}
+</script>
+{% endblock %}
